@@ -79,14 +79,14 @@ temp_show_folder = '../dataset/temp/show'
 if len(listdir(temp_show_folder)):
 
   # Empty the temp show folder
-  system(f'{"del" if name == 'nt' else "rm"} ../dataset/temp/show/*.jpg')
+  system(f'{"del" if name == "nt" else "rm"} ../dataset/temp/show/*.jpg')
 
 # If temp crop folder is not empty
 temp_crop_folder = '../dataset/temp/crop'
 if len(listdir(temp_crop_folder)):
 
   # Empty the temp crop folder
-  system(f'{"del" if name == 'nt' else "rm"} ../dataset/temp/crop/*.jpg')
+  system(f'{"del" if name == "nt" else "rm"} ../dataset/temp/crop/*.jpg')
 
 # Counter for thread
 tid = 0
