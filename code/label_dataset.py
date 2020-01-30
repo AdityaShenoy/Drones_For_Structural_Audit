@@ -130,6 +130,9 @@ while True:
     # Break the while loop and end the program
     break
 
+  # Sleep for 1 second
+  sleep(1)
+
   # Clear the screen
   system('cls' if name == 'nt' else 'clear')
 
@@ -147,6 +150,10 @@ while True:
 
     # Total subimages allotted to this thread
     tsi = subimage_cnt[tid]
+    
+    # If the subimage count has not been initialized yet
+    if not tsi:
+      continue
 
     # Print the progress of the thread
     print(f'{tid}:{" " * 10}{i} / {ti} ({i / ti * 100:.2f}%){" " * 10}{si} / {tsi} ({si / tsi * 100:.2f}%)')
