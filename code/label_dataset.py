@@ -75,16 +75,18 @@ completed_work = [[0, 0] for _ in range(NO_OF_THREADS)]
 subimage_cnt = [0 for _ in range(NO_OF_THREADS)]
 
 # If temp show folder is not empty
-if len(listdir('..\\dataset\\temp\\show')):
+temp_show_folder = '../dataset/temp/show'
+if len(listdir(temp_show_folder)):
 
   # Empty the temp show folder
-  system('del ..\\dataset\\temp\\show\\*.jpg')
+  system(f'{"del" if name == 'nt' else "rm"} ../dataset/temp/show/*.jpg')
 
 # If temp crop folder is not empty
-if len(listdir('..\\dataset\\temp\\crop')):
+temp_crop_folder = '../dataset/temp/crop'
+if len(listdir(temp_crop_folder)):
 
   # Empty the temp crop folder
-  system('del ..\\dataset\\temp\\crop\\*.jpg')
+  system(f'{"del" if name == 'nt' else "rm"} ../dataset/temp/crop/*.jpg')
 
 # Counter for thread
 tid = 0
