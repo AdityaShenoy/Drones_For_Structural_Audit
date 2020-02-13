@@ -2,7 +2,6 @@ from PIL import Image
 from os import system, scandir, listdir, name
 from threading import Thread
 from time import sleep
-import label_dataset_modules as ldm
 
 # Function which is run by threads
 def f(tid):
@@ -23,13 +22,13 @@ def f(tid):
     subimage_cnt[tid] = m * n * (m + 1) * (n + 1) // 4
     
     # Resize the image to above dimensions
-    img = ldm.resize(img, width, height)
+    img = img.resize((width, height))
 
-    # Create a new image to be shown
-    img_to_show_temp = Image.new('RGB', (width + height, height))
+    # Image number
+    img_num = f'{tid + NO_OF_THREADS * completed_work[tid][0]:03}'
 
-    # Paste the original image to the left side
-    ldm.paste(img_to_show_temp, img, 0, 0)
+    # Save the image to img folder with img num as its file name
+    img.save(f'{img_folder}\\{img_num}.jpg')
 
     # Iterate for rows
     for i in range(0, height - WINDOW_SIZE + 1, WINDOW_SIZE):
@@ -43,11 +42,19 @@ def f(tid):
           # For all widths
           for w in range(WINDOW_SIZE, width - j + 1, WINDOW_SIZE):
 
-            # File name for the image to show and final image
-            file_name = f'{tid + NO_OF_THREADS * completed_work[tid][0]:03}_{completed_work[tid][1]:05}.jpg'
+            subimg_num = f'{completed_work[tid][1]:05}'
+
+            # File name for the final image
+            file_name = f'{crop_folder}\\{img_num}_{subimg_num}_{j}_{i}_{w}_{h}.jpg'
 
             # Process the sub image
-            ldm.process(img, i, j, h, w, height, width, img_to_show_temp, file_name, WINDOW_SIZE)
+            cropped_img = img.crop((j, i, j + w, i + h))
+
+            # Resize the image to WINDOW_SIZE * WINDOW_SIZE
+            scaled_img = cropped_img.resize((OUTPUT_SIZE, OUTPUT_SIZE))
+
+            # Save the scaled image
+            scaled_img.save(file_name)
 
             # Increment the sub image count
             completed_work[tid][1] += 1
@@ -60,10 +67,18 @@ def f(tid):
 
 
 # The smallest unit size of window
-WINDOW_SIZE = 256
+WINDOW_SIZE = 512
+
+# Output dimension
+OUTPUT_SIZE = 256
 
 # Number of threads
 NO_OF_THREADS = 4
+
+# Folder paths
+crop_folder = 'F:\\github\\Drones_For_Infrastructure_Crack_Detection\\dataset\\temp\\crop'
+img_folder = 'F:\\github\\Drones_For_Infrastructure_Crack_Detection\\dataset\\temp\\img'
+camera_folder = 'F:\\github\\Drones_For_Infrastructure_Crack_Detection\\dataset\\camera'
 
 # Initialize empty work allotment list
 alloted_work = [[] for _ in range(NO_OF_THREADS)]
@@ -74,19 +89,23 @@ completed_work = [[0, 0] for _ in range(NO_OF_THREADS)]
 # The sub image count of current image
 subimage_cnt = [0 for _ in range(NO_OF_THREADS)]
 
-# If temp show folder is not empty
-temp_show_folder = '../dataset/temp/show'
-if len(listdir(temp_show_folder)):
+# Print porgress
+print('Deleting old files...')
 
-  # Empty the temp show folder
-  system(f'{"del" if name == "nt" else "rm"} ../dataset/temp/show/*.jpg')
+# If crop folder is not empty
+if len(listdir(crop_folder)):
 
-# If temp crop folder is not empty
-temp_crop_folder = '../dataset/temp/crop'
-if len(listdir(temp_crop_folder)):
+  # Empty the crop folder
+  system(f'{"del" if name == "nt" else "rm"} {crop_folder}\\*.jpg')
 
-  # Empty the temp crop folder
-  system(f'{"del" if name == "nt" else "rm"} ../dataset/temp/crop/*.jpg')
+# If img folder is not empty
+if len(listdir(img_folder)):
+
+  # Empty the crop folder
+  system(f'{"del" if name == "nt" else "rm"} {img_folder}\\*.jpg')
+
+# Print progress
+print('Old files deleted successfully...')
 
 # Counter for thread
 tid = 0
@@ -95,13 +114,13 @@ tid = 0
 for dataset_folder in ['aditya', 'rahul', 'kalyani']:
 
   # Open the folder
-  with scandir(f'../dataset/camera/{dataset_folder}') as folder:
+  with scandir(f'{camera_folder}\\{dataset_folder}') as folder:
 
     # Iterate through all files in the folder
     for file in folder:
 
       # Assign the work to the thread
-      alloted_work[tid].append(f'../dataset/camera/{dataset_folder}/{file.name}')
+      alloted_work[tid].append(f'{camera_folder}\\{dataset_folder}\\{file.name}')
 
       # Increment the thread ID to assign next work
       tid = (tid + 1) % NO_OF_THREADS

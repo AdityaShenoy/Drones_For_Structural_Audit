@@ -1,5 +1,3 @@
 @echo off
-cd code
 cls
-python label_dataset.py
-cd ..
+python code/label_dataset.py
