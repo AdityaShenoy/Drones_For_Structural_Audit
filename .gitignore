@@ -2,9 +2,4 @@ code/dataset/*
 code/.vscode/*
 code/__pycache__/*
 dataset/*
-backup/*
-images/*
-papers/*
-ppt/*
-report/*
 test.py
