@@ -97,14 +97,15 @@ for label, class_ in enumerate(CLASSES):
       # Calculate sub images obtained from this image
       total_sub_imgs = (w - IMAGE_SIZE + 1) * (h - IMAGE_SIZE + 1)
 
-      # Initialize empty X data
-      X = []
-
-      # Construct label data
-      Y = np.asarray([label for _ in range(total_sub_imgs)])
-
       # For all possible windows
       for y in range(h - IMAGE_SIZE + 1):
+
+        # Initialize empty X data
+        X = []
+
+        # Construct label data
+        Y = np.asarray([label for _ in range(w - IMAGE_SIZE + 1)])
+
         for x in range(w - IMAGE_SIZE + 1):
 
           # Crop the image in the window
@@ -120,11 +121,14 @@ for label, class_ in enumerate(CLASSES):
           # Increment the image counter
           img_cntr += 1
       
-      # Convert list to array
-      X = np.asarray(X)
+        # Convert list to array
+        X = np.asarray(X)
 
-      # Train the model with X and Y
-      model.fit(X, Y)
+        # Train the model with X and Y
+        model.train_on_batch(X, Y)
+
+        # Debugging weight
+        progress(f'{model.get_weights()}')
 
 # Print progress
 progress(f'Training of model finished...\nTesting the model...')
@@ -190,8 +194,8 @@ for label, class_ in enumerate(CLASSES):
           X.append(np.asarray(cropped_img))
 
           # Save the cropped image in the output test folder
-          file_name = f'{OUTPUT_TEST_FOLDER}\\{class_}\\{img_cntr:0{num_digits}}.jpg'
-          cropped_img.save(file_name)
+          # file_name = f'{OUTPUT_TEST_FOLDER}\\{class_}\\{img_cntr:0{num_digits}}.jpg'
+          # cropped_img.save(file_name)
 
           # Increment the image counter
           img_cntr += 1
@@ -209,7 +213,7 @@ for label, class_ in enumerate(CLASSES):
 end = time()
 
 # Calculate execution time
-exec_time = end - start
+exec_time = int(end - start)
 
 # Print time
 print(f'{exec_time}s')
