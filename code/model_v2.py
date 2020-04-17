@@ -1,0 +1,119 @@
+from os import scandir
+from PIL import Image
+import numpy as np
+import tensorflow as tf
+
+# Output image dimension
+IMAGE_SIZE = 256
+
+# The classes
+CLASSES = 'cdnp'
+
+# This function calculates the number of training samples available
+def calculate_training_size():
+
+  # Initialize result
+  result = 0
+
+  # Input folder path
+  INPUT_FOLDER = 'F:\\github\\Drones_For_Structural_Audit\\' + \
+                 f'dataset\\internal\\300\\train'
+
+  # Iterate for all classes
+  for class_ in CLASSES:
+
+    # Scan the class folder
+    with scandir(f'{INPUT_FOLDER}\\{class_}') as folder:
+      for file in folder:
+
+        # Open the image in the path
+        img = Image.open(file.path)
+
+        # Extract dimensions of the image
+        w, h = img.width, img.height
+
+        # Add sub image count to the result
+        result += (w - IMAGE_SIZE + 1) * (h - IMAGE_SIZE + 1)
+
+  # Return all the count
+  return result
+
+
+NUM_SAMPLES = calculate_training_size()
+
+
+def batch_generator(batch_size=32, mode='train'):
+
+  # Input folder path
+  INPUT_FOLDER = 'F:\\github\\Drones_For_Structural_Audit\\' + \
+                 f'dataset\\internal\\300\\{mode}'
+
+  # Initializing empty lists that will contain batches of samples
+  X, Y = [], []
+
+  # Initialize sample number of this batch
+  sample_size = 0
+
+  # Run the generator function indefinitely
+  while True:
+
+    # Iterate for all classes
+    for label, class_ in enumerate(CLASSES):
+
+      # Scan the class folder
+      with scandir(f'{INPUT_FOLDER}\\{class_}') as folder:
+        for file in folder:
+
+          # Open the image in the path
+          img = Image.open(file.path)
+
+          # Extract dimensions of the image
+          w, h = img.width, img.height
+
+          # Iterate for all windows of the image
+          for y in range(h - IMAGE_SIZE + 1):
+            for x in range(w - IMAGE_SIZE + 1):
+
+              # Crop the image in the window
+              cropped_img = img.crop((x, y, x + IMAGE_SIZE, y + IMAGE_SIZE))
+
+              # Append the result data
+              X.append(np.asarray(cropped_img))
+              Y.append(label)
+
+              # Increment the sample size
+              sample_size += 1
+
+              # If the batch is full
+              if sample_size == batch_size:
+
+                # Convert the lists to ndarrays and normalize the input
+                X = np.asarray(X) / 256
+                Y = np.asarray(Y)
+
+                # Yield the results
+                yield X, Y
+
+                # Reset the variables
+                X, Y, sample_size = [], [], 0
+
+# Initialize sequential model
+model = tf.keras.models.Sequential([
+  tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
+  tf.keras.layers.Dense(128),
+  tf.keras.layers.Dense(len(CLASSES))
+])
+
+# Compile the model
+model.compile(
+  loss = 'sparse_categorical_crossentropy',
+  optimizer = 'sgd',
+  metrics = ['accuracy']
+)
+
+# Visualize the model
+tf.keras.utils.plot_model(
+  model,
+  'F:\\github\\Drones_For_Structural_Audit\\images\\model.jpg',
+  show_shapes=True
+)
