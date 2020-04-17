@@ -145,6 +145,3 @@ metrics = model.evaluate_generator(
   steps = int(NUM_TESTING_SAMPLES / BATCH_SIZE),
   verbose = 1
 )
-
-# Print the model's metrics
-print(metrics)
