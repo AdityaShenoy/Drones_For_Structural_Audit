@@ -105,6 +105,7 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 
 
 # Previous trials with training and testing metrics
+# optimizer sgd, loss function 'sparse_categorical_cross_entropy'
 # loss: 8.7520 - accuracy: 0.2500
 # loss: 8.7482 - accuracy: 0.2501
 # model = tf.keras.models.Sequential([
@@ -114,6 +115,8 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 # ])
 
 # Initialize sequential model
+# loss: 11.5463 - accuracy: 0.9956
+# loss: 5070.3223 - accuracy: 0.2496
 model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
   tf.keras.layers.Dense(128, activation='relu'),
