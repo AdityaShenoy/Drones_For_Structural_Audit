@@ -6,24 +6,29 @@ import tensorflow as tf
 # Output image dimension
 IMAGE_SIZE = 256
 
+# Default batch size
+BATCH_SIZE = 32
+
 # The classes
 CLASSES = 'cdnp'
 
+# Input folder path
+INPUT_FOLDER = '/content/drive/My Drive/Colab Notebooks/300'
+
 # This function calculates the number of training samples available
-def calculate_training_size():
+def calculate_data_size(mode):
 
   # Initialize result
   result = 0
 
   # Input folder path
-  INPUT_FOLDER = 'F:\\github\\Drones_For_Structural_Audit\\' + \
-                 f'dataset\\internal\\300\\train'
+  FOLDER = f'{INPUT_FOLDER}/{mode}'
 
   # Iterate for all classes
   for class_ in CLASSES:
 
     # Scan the class folder
-    with scandir(f'{INPUT_FOLDER}\\{class_}') as folder:
+    with scandir(f'{FOLDER}/{class_}') as folder:
       for file in folder:
 
         # Open the image in the path
@@ -39,14 +44,15 @@ def calculate_training_size():
   return result
 
 
-NUM_SAMPLES = calculate_training_size()
+# Calculate training and testing samples
+NUM_TRAINING_SAMPLES = calculate_data_size(mode='train')
+NUM_TESTING_SAMPLES = calculate_data_size(mode='test')
 
 
-def batch_generator(batch_size=32, mode='train'):
+def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 
   # Input folder path
-  INPUT_FOLDER = 'F:\\github\\Drones_For_Structural_Audit\\' + \
-                 f'dataset\\internal\\300\\{mode}'
+  FOLDER = f'{INPUT_FOLDER}/{mode}'
 
   # Initializing empty lists that will contain batches of samples
   X, Y = [], []
@@ -61,7 +67,7 @@ def batch_generator(batch_size=32, mode='train'):
     for label, class_ in enumerate(CLASSES):
 
       # Scan the class folder
-      with scandir(f'{INPUT_FOLDER}\\{class_}') as folder:
+      with scandir(f'{FOLDER}/{class_}') as folder:
         for file in folder:
 
           # Open the image in the path
@@ -97,23 +103,45 @@ def batch_generator(batch_size=32, mode='train'):
                 # Reset the variables
                 X, Y, sample_size = [], [], 0
 
+
+# Previous trials with training and testing metrics
+# loss: 8.7520 - accuracy: 0.2500
+# loss: 8.7482 - accuracy: 0.2501
+# model = tf.keras.models.Sequential([
+#   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
+#   tf.keras.layers.Dense(128),
+#   tf.keras.layers.Dense(len(CLASSES))
+# ])
+
 # Initialize sequential model
 model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
-  tf.keras.layers.Dense(128),
+  tf.keras.layers.Dense(128, activation='relu'),
+  tf.keras.layers.Dropout(0.2),
   tf.keras.layers.Dense(len(CLASSES))
 ])
 
 # Compile the model
 model.compile(
-  loss = 'sparse_categorical_crossentropy',
-  optimizer = 'sgd',
+  loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+  optimizer = 'adam',
   metrics = ['accuracy']
 )
 
-# Visualize the model
-tf.keras.utils.plot_model(
-  model,
-  'F:\\github\\Drones_For_Structural_Audit\\images\\model.jpg',
-  show_shapes=True
+# Train the model
+history = model.fit_generator(
+  generator = batch_generator(),
+  steps_per_epoch = int(NUM_TRAINING_SAMPLES / BATCH_SIZE),
+  epochs = 1,
+  verbose = 1
 )
+
+# Evaluate the model
+metrics = model.evaluate_generator(
+  generator = batch_generator(mode='test'),
+  steps = int(NUM_TESTING_SAMPLES / BATCH_SIZE),
+  verbose = 1
+)
+
+# Print the model's metrics
+print(metrics)
