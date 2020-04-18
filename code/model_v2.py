@@ -169,7 +169,7 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 #   metrics = ['accuracy']
 # )
 
-# augmented data, adam
+# augmented data
 # 2137s 66ms/step - loss: 0.3637 - accuracy: 0.9223
 # 281s 35ms/step - loss: 10.8132 - accuracy: 0.2500
 model = tf.keras.models.Sequential([
