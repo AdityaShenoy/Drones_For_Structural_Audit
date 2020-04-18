@@ -13,7 +13,8 @@ BATCH_SIZE = 32
 CLASSES = 'cdnp'
 
 # Input folder path
-INPUT_FOLDER = '/content/drive/My Drive/Colab Notebooks/300'
+INPUT_FOLDER = 'F:/github/Drones_For_Structural_Audit/dataset/internal/300_aug'
+# INPUT_FOLDER = '/content/drive/My Drive/Colab Notebooks/300_aug'
 
 # This function calculates the number of training samples available
 def calculate_data_size(mode):
@@ -47,6 +48,9 @@ def calculate_data_size(mode):
 # Calculate training and testing samples
 NUM_TRAINING_SAMPLES = calculate_data_size(mode='train')
 NUM_TESTING_SAMPLES = calculate_data_size(mode='test')
+
+print(NUM_TRAINING_SAMPLES, 4*16*8*2025)
+print(NUM_TESTING_SAMPLES, 4*4*8*2025)
 
 
 def batch_generator(batch_size=BATCH_SIZE, mode='train'):
