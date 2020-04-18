@@ -110,7 +110,7 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 
 # Previous trials with training and testing metrics
 
-# no augmentation, sgd, loss function 'sparse_categorical_cross_entropy'
+# no augmentation
 # loss: 8.7520 - accuracy: 0.2500
 # loss: 8.7482 - accuracy: 0.2501
 # model = tf.keras.models.Sequential([
@@ -118,8 +118,13 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 #   tf.keras.layers.Dense(128),
 #   tf.keras.layers.Dense(len(CLASSES))
 # ])
+# model.compile(
+#   loss = 'sparse_categorical_crossentropy',
+#   optimizer = 'sgd',
+#   metrics = ['accuracy']
+# )
 
-# no augmentation, adam
+# no augmentation
 # loss: 11.5463 - accuracy: 0.9956
 # loss: 5070.3223 - accuracy: 0.2496
 # model = tf.keras.models.Sequential([
@@ -128,8 +133,13 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 #   tf.keras.layers.Dropout(0.2),
 #   tf.keras.layers.Dense(len(CLASSES))
 # ])
+# model.compile(
+#   loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#   optimizer = 'adam',
+#   metrics = ['accuracy']
+# )
 
-# augmented data, adam
+# augmented data
 # 5577s 172ms/step - loss: 5.0860 - accuracy: 0.9929
 # 465s 57ms/step - loss: 794.8063 - accuracy: 0.2500
 # model = tf.keras.models.Sequential([
@@ -138,8 +148,13 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 #   tf.keras.layers.Dropout(0.2),
 #   tf.keras.layers.Dense(len(CLASSES))
 # ])
+# model.compile(
+#   loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#   optimizer = 'adam',
+#   metrics = ['accuracy']
+# )
 
-# augmented data, adam
+# augmented data
 # 2701s 83ms/step - loss: 1.2346 - accuracy: 0.8177
 # 281s 35ms/step - loss: 5.1768 - accuracy: 0.2500
 # model = tf.keras.models.Sequential([
@@ -148,6 +163,11 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 #   tf.keras.layers.Dropout(0.2),
 #   tf.keras.layers.Dense(len(CLASSES))
 # ])
+# model.compile(
+#   loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#   optimizer = 'adam',
+#   metrics = ['accuracy']
+# )
 
 # augmented data, adam
 # 2137s 66ms/step - loss: 0.3637 - accuracy: 0.9223
