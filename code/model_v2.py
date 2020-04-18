@@ -13,8 +13,8 @@ BATCH_SIZE = 32
 CLASSES = 'cdnp'
 
 # Input folder path
-INPUT_FOLDER = 'F:/github/Drones_For_Structural_Audit/dataset/internal/300_aug'
-# INPUT_FOLDER = '/content/drive/My Drive/Colab Notebooks/300_aug'
+# INPUT_FOLDER = 'F:/github/Drones_For_Structural_Audit/dataset/internal/300_aug'
+INPUT_FOLDER = '/content/drive/My Drive/Colab Notebooks/300_aug'
 
 # This function calculates the number of training samples available
 def calculate_data_size(mode):
@@ -109,7 +109,8 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 
 
 # Previous trials with training and testing metrics
-# optimizer sgd, loss function 'sparse_categorical_cross_entropy'
+
+# no augmentation, sgd, loss function 'sparse_categorical_cross_entropy'
 # loss: 8.7520 - accuracy: 0.2500
 # loss: 8.7482 - accuracy: 0.2501
 # model = tf.keras.models.Sequential([
@@ -118,12 +119,43 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 #   tf.keras.layers.Dense(len(CLASSES))
 # ])
 
-# Initialize sequential model
+# no augmentation, adam
 # loss: 11.5463 - accuracy: 0.9956
 # loss: 5070.3223 - accuracy: 0.2496
+# model = tf.keras.models.Sequential([
+#   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
+#   tf.keras.layers.Dense(128, activation='relu'),
+#   tf.keras.layers.Dropout(0.2),
+#   tf.keras.layers.Dense(len(CLASSES))
+# ])
+
+# augmented data, adam
+# 5577s 172ms/step - loss: 5.0860 - accuracy: 0.9929
+# 465s 57ms/step - loss: 794.8063 - accuracy: 0.2500
+# model = tf.keras.models.Sequential([
+#   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
+#   tf.keras.layers.Dense(128, activation='relu'),
+#   tf.keras.layers.Dropout(0.2),
+#   tf.keras.layers.Dense(len(CLASSES))
+# ])
+
+# augmented data, adam
+# 2701s 83ms/step - loss: 1.2346 - accuracy: 0.8177
+# 281s 35ms/step - loss: 5.1768 - accuracy: 0.2500
+# model = tf.keras.models.Sequential([
+#   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
+#   tf.keras.layers.Dense(32, activation='relu'),
+#   tf.keras.layers.Dropout(0.2),
+#   tf.keras.layers.Dense(len(CLASSES))
+# ])
+
+# augmented data, adam
+# 
+# 
 model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
-  tf.keras.layers.Dense(128, activation='relu'),
+  tf.keras.layers.Dense(16, activation='relu'),
+  tf.keras.layers.Dense(16, activation='relu'),
   tf.keras.layers.Dropout(0.2),
   tf.keras.layers.Dense(len(CLASSES))
 ])
