@@ -150,8 +150,8 @@ def batch_generator(batch_size=BATCH_SIZE, mode='train'):
 # ])
 
 # augmented data, adam
-# 
-# 
+# 2137s 66ms/step - loss: 0.3637 - accuracy: 0.9223
+# 281s 35ms/step - loss: 10.8132 - accuracy: 0.2500
 model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(IMAGE_SIZE, IMAGE_SIZE, 3)),
   tf.keras.layers.Dense(16, activation='relu'),
