@@ -9,7 +9,6 @@ GRID = Image.open('F:/github/Drones_For_Structural_Audit/images/grid.png').conve
 for img_num in range(INPUT_IMG_CNT):
   img = Image.open(f'{INPUT_FOLDER}/{img_num:03}.jpg')
   w, h = img.width, img.height
-  print(w, h)
   vis = set()
   for y in range(h - IMG_SIZE + 1):
     x = 0
@@ -26,15 +25,26 @@ for img_num in range(INPUT_IMG_CNT):
         img_to_show.paste(scaled_img, box=(w, 0))
         img_to_show.paste(GRID, box=(x, y), mask=GRID)
         img_to_show.show()
-        label = input(f'Enter label (cdnp / 1-{w - IMG_SIZE - x}): ')
+        label = input(f'Enter label (cdnp / 1-{w - IMG_SIZE - x} / x): ')
         pag.hotkey('alt', 'tab')
         pag.hotkey('alt', 'f4')
         if label in 'cdnp':
           l = 'cdnp'.find(label)
-          # cropped_img.save(f'{OUTPUT_FOLDER}/{img_num:03}_{x:04}_{y:04}_{l}.jpg')
+          cropped_img.save(f'{OUTPUT_FOLDER}/{img_num:03}_{x:04}_{y:04}_{l}.jpg')
           for yy in range(IMG_SIZE):
             for xx in range(IMG_SIZE):
               vis.add((x + xx, y + yy))
+        elif label == 'x':
+          for yy in range(IMG_SIZE):
+            for xx in range(IMG_SIZE):
+              vis.add((x + xx, y + yy))
+        elif label == 'xx':
+          for yy in range(IMG_SIZE):
+            for xx in range(w - x + 1):
+              vis.add((x + xx, y + yy))
         else:
-          x += int(label) - 1
+          try:
+            x += int(label) - 1
+          except Exception:
+            x -= 1
       x += 1
