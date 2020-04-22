@@ -1,16 +1,19 @@
 from PIL import Image
+from re import match
 import pyautogui as pag
 FOLDER_PREFIX = 'F:/github/Drones_For_Structural_Audit/dataset'
 INPUT_FOLDER = f'{FOLDER_PREFIX}/raw/all_images'
 OUTPUT_FOLDER = f'{FOLDER_PREFIX}/internal/256'
 INPUT_IMG_CNT = 228
+IMG_START = 3
 IMG_SIZE = 256
 GRID = Image.open('F:/github/Drones_For_Structural_Audit/images/grid.png').convert('RGBA')
-for img_num in range(INPUT_IMG_CNT):
+for img_num in range(IMG_START, INPUT_IMG_CNT):
   img = Image.open(f'{INPUT_FOLDER}/{img_num:03}.jpg')
   w, h = img.width, img.height
   vis = set()
-  for y in range(h - IMG_SIZE + 1):
+  y = 0
+  while y < h - IMG_SIZE + 1:
     x = 0
     while x < (w - IMG_SIZE + 1):
       for xx in range(IMG_SIZE):
@@ -25,7 +28,7 @@ for img_num in range(INPUT_IMG_CNT):
         img_to_show.paste(scaled_img, box=(w, 0))
         img_to_show.paste(GRID, box=(x, y), mask=GRID)
         img_to_show.show()
-        label = input(f'Enter label (cdnp / 1-{w - IMG_SIZE - x} / x): ')
+        label = input(f'Enter label (cdnp / 1-{w - IMG_SIZE - x} / x / xx / y1-y{h - IMG_SIZE - y}): ')
         pag.hotkey('alt', 'tab')
         pag.hotkey('alt', 'f4')
         if label in 'cdnp':
@@ -42,9 +45,12 @@ for img_num in range(INPUT_IMG_CNT):
           for yy in range(IMG_SIZE):
             for xx in range(w - x + 1):
               vis.add((x + xx, y + yy))
+        elif match('\\d+', label):
+          x += int(label) - 1
+        elif match('y\\d+', label):
+          y += int(label[1:]) - 1
+          break
         else:
-          try:
-            x += int(label) - 1
-          except Exception:
-            x -= 1
+          x -= 1
       x += 1
+    y += 1
