@@ -5,7 +5,7 @@ FOLDER_PREFIX = 'F:/github/Drones_For_Structural_Audit/dataset'
 INPUT_FOLDER = f'{FOLDER_PREFIX}/raw/all_images'
 OUTPUT_FOLDER = f'{FOLDER_PREFIX}/internal/256'
 INPUT_IMG_CNT = 228
-IMG_START = 3
+IMG_START = 5
 IMG_SIZE = 256
 GRID = Image.open('F:/github/Drones_For_Structural_Audit/images/grid.png').convert('RGBA')
 for img_num in range(IMG_START, INPUT_IMG_CNT):
