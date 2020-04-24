@@ -4,6 +4,7 @@ import time
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+import threading
 
 # Note start time
 start = time.time()
@@ -14,21 +15,27 @@ CLASSES = 'cdnp'
 # Image size
 IMG_SIZE = 256
 
-# Folder paths
-FOLDER_PREFIX = 'F:/github/Drones_For_Structural_Audit/dataset/internal'
-RAW_FOLDER = f'{FOLDER_PREFIX}/{IMG_SIZE}_raw'
-SPLIT_FOLDER = f'{FOLDER_PREFIX}/{IMG_SIZE}_split'
-NO_DISTORT_AUG_FOLDER = f'{FOLDER_PREFIX}/{IMG_SIZE}_no_dist_aug'
-AUG_FOLDER = f'{FOLDER_PREFIX}/{IMG_SIZE}_aug'
+# Training proportion
+train_prop = 0.8
 
-# For all 3 folders
-for folder in [SPLIT_FOLDER, NO_DISTORT_AUG_FOLDER, AUG_FOLDER]:
+# Folder paths
+FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
+RAW_FOLDER = f'{FOLDER_PREFIX}/raw'
+SPLIT_FOLDER = f'{FOLDER_PREFIX}/split'
+NO_DISTORT_AUG_FOLDER = f'{FOLDER_PREFIX}/no_dist_aug'
+AUG_FOLDER = f'{FOLDER_PREFIX}/aug'
+TRAIN_FOLDER = f'{FOLDER_PREFIX}/train'
+TEST_FOLDER = f'{FOLDER_PREFIX}/test'
+
+# For all generated folders
+for folder in [SPLIT_FOLDER, NO_DISTORT_AUG_FOLDER, AUG_FOLDER, 
+               TRAIN_FOLDER, TEST_FOLDER]:
 
   # If the folder already exists
   if os.path.exists(folder):
     
     # Delete the folder
-    shutil.rmtree(folder, onerror=lambda _: _)
+    shutil.rmtree(folder, onerror=lambda _, __, ___: _)
 
     # Wait for 1 second
     time.sleep(1)
@@ -77,8 +84,8 @@ with os.scandir(RAW_FOLDER) as folder:
         .save(f'{NO_DISTORT_AUG_FOLDER}/{CLASSES[label]}/{file.name[:-4]}_{suffix}.jpg')
 
 # The augmentation ratio is the factor by which the non distorted images need
-# to be augmented to get the input data close to 10,000 samples
-aug_ratio = {class_: 10_000 // (num_samples[class_] * 8) for class_ in CLASSES}
+# to be augmented to get the input data close to 20,000 samples
+aug_ratio = {class_: 20_000 // (num_samples[class_] * 8) for class_ in CLASSES}
 
 # Keras data generator which performs distorting
 # augmentations as specified in the parameter
@@ -92,8 +99,8 @@ data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
   zoom_range = 0.2,
 )
 
-# For all class labels
-for class_ in CLASSES:
+# Function for thread that will generate the augmented images
+def augment_imgs(class_):
 
   # Scan the no distortion augmentation folder
   with os.scandir(f'{NO_DISTORT_AUG_FOLDER}/{class_}') as folder:
@@ -117,6 +124,49 @@ for class_ in CLASSES:
         # If the augmentation ration has been achieved
         if len(os.listdir(f'{AUG_FOLDER}/{class_}')) == (aug_ratio[class_] * file_num):
           break
+  
+  # Number of files in the aug folder
+  l = len(os.listdir(f'{AUG_FOLDER}/{class_}'))
+
+  # Split point between train and test
+  train_test_split = int(l * 0.8)
+
+  # Scan the aug folder
+  with os.scandir(f'{AUG_FOLDER}/{class_}') as folder:
+
+    # Iterate for all files in the folder
+    for i, file in enumerate(folder):
+
+      # For training proportion, copy to train folder
+      if i < train_test_split:
+        shutil.copy(src=file.path, dst=f'{TRAIN_FOLDER}/{class_}')
+
+      # For testing proportion, copy to test folder
+      else:
+        shutil.copy(src=file.path, dst=f'{TEST_FOLDER}/{class_}')
+
+  # Set the finish flag to true
+  thread_finished[class_] = True
+
+# Flag to indicate the status of threads
+thread_finished = {class_: False for class_ in CLASSES}
+
+# Start a thread for each class
+for class_ in CLASSES:
+  threading.Thread(target=augment_imgs, args=(class_, )).start()
+
+# Main thread will wait for all threads to finish
+while not all(thread_finished.values()):
+  time.sleep(1)
+
+# This is the final count of images generated
+gen_img_cnt = {class_: aug_ratio[class_] * num_samples[class_] * 8 for class_ in CLASSES}
+
+# Print stats
+print('Original images count')
+print(num_samples)
+print('Generated images count:')
+print(gen_img_cnt)
 
 # Note end time
 end = time.time()
