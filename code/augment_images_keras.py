@@ -127,7 +127,7 @@ def augment_imgs(class_):
         l = len(os.listdir(f'{AUG_FOLDER}/{class_}'))
 
         # Print progress
-        thread_msg[class_] = f'Completed {l} / 20,000'
+        thread_msg[class_] = f'Completed {l} / 20000'
 
         # If the augmentation ration has been achieved
         if l == (aug_ratio[class_] * file_num):
