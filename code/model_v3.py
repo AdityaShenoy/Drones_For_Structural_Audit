@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import time
 import os
+import shutil
 from PIL import Image
 from IPython.display import clear_output
 import sys
@@ -20,7 +21,10 @@ MAX_NODES_PER_LAYER = 256
 
 # Folder paths
 # FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
-FOLDER_PREFIX = f'/content/drive/My Drive/{IMG_SIZE}'
+FOLDER_PREFIX = f'/content/{IMG_SIZE}'
+
+# Copy files from colab file system to drive
+shutil.copytree(src=f'/content/drive/My Drive/{IMG_SIZE}', dst=FOLDER_PREFIX)
 
 # Generate batch size of variable (X or Y) data based on mode (train or test)
 def gen(var, mode):

@@ -185,7 +185,7 @@ print('Generated images count:')
 print(gen_img_cnt)
 
 # Copy files from colab file system to drive
-shutil.copytree(src=FOLDER_PREFIX, dst='/content/drive/My Drive')
+shutil.copytree(src=FOLDER_PREFIX, dst=f'/content/drive/My Drive/{IMG_SIZE}')
 
 # Note end time
 end = time.time()
@@ -193,5 +193,6 @@ end = time.time()
 # Calculate time difference
 exec_time = int(end - start)
 
+# Print execution time
 print(f'Total execution time: {exec_time}s (' + \
       f'{exec_time // 3600}h {(exec_time // 60) % 60}m {exec_time % 60}s)')
