@@ -3,6 +3,11 @@ import numpy as np
 import time
 import os
 from PIL import Image
+from IPython.display import clear_output
+import sys
+
+# Note start time
+start = time.time()
 
 # Constants
 TRAINING_SIZE = 64_000
@@ -13,7 +18,8 @@ CLASSES = 'cdnp'
 MAX_HIDDEN_LAYERS = 2
 
 # Folder paths
-FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
+# FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
+FOLDER_PREFIX = f'/content/drive/My Drive/{IMG_SIZE}'
 
 # Generate batch size of variable (X or Y) data based on mode (train or test)
 def gen(var, mode):
@@ -58,12 +64,15 @@ def gen(var, mode):
             # Reset the batch again
             res = []
 
+sys.stdout = open(f'{FOLDER_PREFIX}/model_summary.txt', 'w')
+
 # Architecture of the neural network
 hidden_nodes = [1]
 
 # While the hidden layers are less than the 
 while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
 
+  print('='*100)
   print('Current NN architecture:')
   print(*hidden_nodes, sep=' → ')
 
@@ -116,3 +125,14 @@ while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
       hidden_nodes.append(1)
   else:
     hidden_nodes[-1] *= 2
+  
+  print('='*100)
+
+# Note end time
+end = time.time()
+
+# Calculate time difference
+exec_time = int(end - start)
+
+print(f'Total execution time: {exec_time}s (' + \
+      f'{exec_time // 3600}h {(exec_time // 60) % 60}m {exec_time % 60}s)')

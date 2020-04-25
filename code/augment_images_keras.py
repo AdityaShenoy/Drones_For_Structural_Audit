@@ -157,8 +157,9 @@ def augment_imgs(class_):
         thread_msg[class_] = 'Generating testing images'
 
   # Set the finish flag to true and progress message to finished
-  thread_finished[class_] = True
   thread_msg[class_] = 'Thread work finished'
+  time.sleep(1)
+  thread_finished[class_] = True
 
 # Flag and progress message to indicate the status of threads
 thread_finished = {class_: False for class_ in CLASSES}
