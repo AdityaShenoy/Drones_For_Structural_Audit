@@ -111,15 +111,21 @@ with open(f'{FOLDER_PREFIX}/model_summary.txt', 'w') as f:
     # Train the model
     history = model.fit(
       x = gen(mode='train'),
-      validation_data = gen(mode='test'),
-      validation_steps = TESTING_SIZE // BATCH_SIZE,
       epochs = 1,
       verbose = 1,
       steps_per_epoch = TRAINING_SIZE // BATCH_SIZE
     )
 
+    # Evaluate the model
+    metrics = model.evaluate(
+      x = gen(mode='test'),
+      verbose = 1,
+      steps = TESTING_SIZE // BATCH_SIZE
+    )
+
     # Print progress
     progress(history.history)
+    progress(metrics)
     progress('='*100)
 
     # Reconfigure the architecture
