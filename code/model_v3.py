@@ -4,7 +4,6 @@ import time
 import os
 import shutil
 from PIL import Image
-import sys
 
 # Note start time
 start = time.time()
@@ -69,81 +68,89 @@ def gen(mode):
             # Reset the batch again
             X, Y = [], []
 
-# Set the output for printing to a file
-sys.stdout = open(f'{FOLDER_PREFIX}/model_summary.txt', 'w')
 
-# Architecture of the neural network
-hidden_nodes = [1]
+# Open the output folder
+with open(f'{FOLDER_PREFIX}/model_summary.txt', 'w') as f:
 
-# While the hidden layers are less than the 
-while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
+  # Print and store the progress
+  def progress(msg):
+    f.write(f'{msg}\n')
+    print(msg)
+    
+  # Architecture of the neural network
+  hidden_nodes = [1]
 
-  # Print progress
-  print('='*100)
-  print('Current NN architecture:')
-  print(*hidden_nodes, sep=' → ')
+  # While the hidden layers are less than the 
+  while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
 
-  # Initialize a sequential model
-  model = tf.keras.models.Sequential()
+    # Print progress
+    progress('='*100)
+    progress('Current NN architecture:')
+    progress(' → '.join(map(str, hidden_nodes)))
 
-  # Add flatten layer at the input
-  model.add(tf.keras.layers.Flatten(input_shape=(IMG_SIZE, IMG_SIZE, 3)))
+    # Initialize a sequential model
+    model = tf.keras.models.Sequential()
 
-  # Add hidden layers
-  for h in hidden_nodes:
-    model.add(tf.keras.layers.Dense(h, activation='relu'))
-  
-  # Add output layer
-  model.add(tf.keras.layers.Dense(len(CLASSES)))
+    # Add flatten layer at the input
+    model.add(tf.keras.layers.Flatten(input_shape=(IMG_SIZE, IMG_SIZE, 3)))
 
-  # Compile the model
-  model.compile(
-    loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    optimizer = 'adam',
-    metrics = ['accuracy']
-  )
+    # Add hidden layers
+    for h in hidden_nodes:
+      model.add(tf.keras.layers.Dense(h, activation='relu'))
+    
+    # Add output layer
+    model.add(tf.keras.layers.Dense(len(CLASSES)))
 
-  # Train the model
-  model.fit(
-    x = gen(mode='train'),
-    epochs = 20,
-    verbose = 2,
-    steps_per_epoch = TRAINING_SIZE // BATCH_SIZE
-  )
+    # Compile the model
+    model.compile(
+      loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+      optimizer = 'adam',
+      metrics = ['accuracy']
+    )
 
-  # Evaluate the model
-  model.evaluate(
-    x = gen(mode='test'),
-    verbose = 2,
-    steps_per_epoch = TESTING_SIZE // BATCH_SIZE
-  )
+    # Train the model
+    history = model.fit(
+      x = gen(mode='train'),
+      epochs = 1,
+      verbose = 1,
+      steps_per_epoch = TRAINING_SIZE // BATCH_SIZE
+    )
 
-  # Reconfigure the architecture
-  if hidden_nodes[-1] == MAX_NODES_PER_LAYER:
-    for i in range(-1, -len(hidden_nodes)-1, -1):
-      if hidden_nodes[i] == MAX_NODES_PER_LAYER:
-        hidden_nodes[i] = 1
+    # Evaluate the model
+    metrics = model.evaluate(
+      x = gen(mode='test'),
+      verbose = 1,
+      steps_per_epoch = TESTING_SIZE // BATCH_SIZE
+    )
+
+    # Print progress
+    progress(history)
+    progress(metrics)
+    progress('='*100)
+
+    # Reconfigure the architecture
+    if hidden_nodes[-1] == MAX_NODES_PER_LAYER:
+      for i in range(-1, -len(hidden_nodes)-1, -1):
+        if hidden_nodes[i] == MAX_NODES_PER_LAYER:
+          hidden_nodes[i] = 1
+        else:
+          hidden_nodes[i] *= 2
+          break
       else:
-        hidden_nodes[i] *= 2
-        break
+        hidden_nodes.append(1)
     else:
-      hidden_nodes.append(1)
-  else:
-    hidden_nodes[-1] *= 2
-  
-  # Print progress
-  print('='*100)
+      hidden_nodes[-1] *= 2
+    
+  # Archive the IMG_SIZE folder and copy it to drive
+  shutil.make_archive(f'{IMG_SIZE}', 'zip', f'{IMG_SIZE}')
+  shutil.copy(src=f'/content/{IMG_SIZE}.zip', dst='/content/drive/My Drive')
 
-# Archive the IMG_SIZE folder and copy it to drive
-shutil.make_archive(f'{IMG_SIZE}', 'zip', f'{IMG_SIZE}')
-shutil.copy(src=f'/content/{IMG_SIZE}.zip', dst='/content/drive/My Drive')
+  # Note ending time
+  end = time.time()
 
-# Note ending time
-end = time.time()
+  # Calculate time difference
+  exec_time = int(end - start)
 
-# Calculate time difference
-exec_time = int(end - start)
-
-# Print execution time
-print(f'Total execution time: {exec_time}s (' + \
-      f'{exec_time // 3600}h {(exec_time // 60) % 60}m {exec_time % 60}s)')
+  # Print execution time
+  print(f'Total execution time: {exec_time}s (' + \
+        f'{exec_time // 3600}h {(exec_time // 60) % 60}m {exec_time % 60}s)')
