@@ -134,6 +134,10 @@ while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
   # Print progress
   print('='*100)
 
+# Archive the IMG_SIZE folder and copy it to drive
+shutil.make_archive(f'{IMG_SIZE}', 'zip', f'{IMG_SIZE}')
+shutil.copy(src=f'/content/{IMG_SIZE}.zip', dst='/content/drive/My Drive')
+
 # Note ending time
 end = time.time()
 
