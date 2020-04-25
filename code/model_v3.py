@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import time
 import os
+import shutil
 from PIL import Image
 import sys
 
@@ -18,51 +19,55 @@ MAX_HIDDEN_LAYERS = 2
 MAX_NODES_PER_LAYER = 256
 
 # Folder paths
-# FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
 FOLDER_PREFIX = f'/content/{IMG_SIZE}'
 
-# Generate batch size of variable (X or Y) data based on mode (train or test)
-def gen(var, mode):
+# If the folder already exists in colab file directory, delete it
+if os.path.exists(FOLDER_PREFIX):
+  shutil.rmtree(FOLDER_PREFIX, onerror=lambda a,b,c:_)
+  time.sleep(1)
+
+# Make the folder
+os.mkdir(FOLDER_PREFIX)
+
+# Unpack the archive saved in drive
+shutil.unpack_archive('/content/drive/My Drive/256.zip', FOLDER_PREFIX)
+
+# Generate batch size of samples (X, Y) based on mode (train or test)
+def gen(mode):
 
   # Folder to retrieve images from based on train or test mode
   FOLDER = f'{FOLDER_PREFIX}/{mode}'
 
   # Initialize current batch to empty list
-  res = []
+  X, Y = [], []
 
   # Generator should run infinitely
   while True:
 
     # Iterate for all classes
-    for class_ in CLASSES:
+    for label, class_ in enumerate(CLASSES):
 
       # For all files in the class folder
       with os.scandir(f'{FOLDER}/{class_}') as folder:
         for file in folder:
 
-          # If variable is X
-          if var == 'x':
-          
-            # Open the image
-            img = Image.open(file.path)
+          # Open the image
+          img = Image.open(file.path)
 
-            # Append the pixel data
-            res.append(np.asarray(img))
+          # Append the pixel data
+          X.append(np.asarray(img))
           
-          # If variable is y
-          else:
-
-            # Append the label number 0123 for cdnp present in file name
-            res.append(int(file.name.split('_')[3]))
+          # Append the label number 0123 for cdnp present in file name
+          Y.append(label)
           
           # If current batch is full
-          if len(res) == BATCH_SIZE:
+          if len(Y) == BATCH_SIZE:
 
             # Yield the current batch
-            yield np.asarray(res)
+            yield np.asarray(X), np.asarray(Y)
 
             # Reset the batch again
-            res = []
+            X, Y = [], []
 
 # Set the output for printing to a file
 sys.stdout = open(f'{FOLDER_PREFIX}/model_summary.txt', 'w')
@@ -100,8 +105,7 @@ while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
 
   # Train the model
   model.fit(
-    x = gen(var='x', mode='train'),
-    y = gen(var='y', mode='train'),
+    x = gen(mode='train'),
     epochs = 20,
     verbose = 2,
     steps_per_epoch = TRAINING_SIZE // BATCH_SIZE
@@ -109,8 +113,7 @@ while len(hidden_nodes) <= MAX_HIDDEN_LAYERS:
 
   # Evaluate the model
   model.evaluate(
-    x = gen(var='x', mode='test'),
-    y = gen(var='y', mode='test'),
+    x = gen(mode='test'),
     verbose = 2,
     steps_per_epoch = TESTING_SIZE // BATCH_SIZE
   )

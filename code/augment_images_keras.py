@@ -20,7 +20,6 @@ IMG_SIZE = 256
 train_prop = 0.8
 
 # Folder paths
-# FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
 FOLDER_PREFIX = f'/content/{IMG_SIZE}'
 RAW_FOLDER = f'{FOLDER_PREFIX}/raw'
 SPLIT_FOLDER = f'{FOLDER_PREFIX}/split'
@@ -184,8 +183,9 @@ print(num_samples)
 print('Generated images count:')
 print(gen_img_cnt)
 
-# Archive the IMG_SIZE folder
+# Archive the IMG_SIZE folder and copy it to drive
 shutil.make_archive(f'{IMG_SIZE}', 'zip', f'{IMG_SIZE}')
+shutil.copy(src=f'/content/{IMG_SIZE}.zip', dst='/content/drive/My Drive')
 
 # Note end time
 end = time.time()
