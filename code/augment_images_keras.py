@@ -5,6 +5,7 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import threading
+from IPython.display import clear_output
 
 # Note start time
 start = time.time()
@@ -19,7 +20,8 @@ IMG_SIZE = 256
 train_prop = 0.8
 
 # Folder paths
-FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
+# FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
+FOLDER_PREFIX = f'/content/drive/My Drive/{IMG_SIZE}'
 RAW_FOLDER = f'{FOLDER_PREFIX}/raw'
 SPLIT_FOLDER = f'{FOLDER_PREFIX}/split'
 NO_DISTORT_AUG_FOLDER = f'{FOLDER_PREFIX}/no_dist_aug'
@@ -121,15 +123,21 @@ def augment_imgs(class_):
                  save_format = 'jpeg'
                ):
 
+        # Calculate files in the folder
+        l = len(os.listdir(f'{AUG_FOLDER}/{class_}'))
+
+        # Print progress
+        thread_msg[class_] = f'Completed {l} / 20,000'
+
         # If the augmentation ration has been achieved
-        if len(os.listdir(f'{AUG_FOLDER}/{class_}')) == (aug_ratio[class_] * file_num):
+        if l == (aug_ratio[class_] * file_num):
           break
-  
-  # Number of files in the aug folder
-  l = len(os.listdir(f'{AUG_FOLDER}/{class_}'))
 
   # Split point between train and test
-  train_test_split = int(l * 0.8)
+  train_test_split = 16_000
+
+  # Print progress message
+  thread_msg[class_] = 'Generating training images'
 
   # Scan the aug folder
   with os.scandir(f'{AUG_FOLDER}/{class_}') as folder:
@@ -145,11 +153,16 @@ def augment_imgs(class_):
       else:
         shutil.copy(src=file.path, dst=f'{TEST_FOLDER}/{class_}')
 
-  # Set the finish flag to true
-  thread_finished[class_] = True
+        # Print progress message
+        thread_msg[class_] = 'Generating testing images'
 
-# Flag to indicate the status of threads
+  # Set the finish flag to true and progress message to finished
+  thread_finished[class_] = True
+  thread_msg[class_] = 'Thread work finished'
+
+# Flag and progress message to indicate the status of threads
 thread_finished = {class_: False for class_ in CLASSES}
+thread_msg = {class_: 'Thread not started' for class_ in CLASSES}
 
 # Start a thread for each class
 for class_ in CLASSES:
@@ -158,6 +171,8 @@ for class_ in CLASSES:
 # Main thread will wait for all threads to finish
 while not all(thread_finished.values()):
   time.sleep(1)
+  clear_output()
+  print(*[f'{class_}: {thread_msg[class_]}' for class_ in CLASSES], sep='\n')
 
 # This is the final count of images generated
 gen_img_cnt = {class_: aug_ratio[class_] * num_samples[class_] * 8 for class_ in CLASSES}
