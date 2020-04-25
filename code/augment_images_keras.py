@@ -184,6 +184,9 @@ print(num_samples)
 print('Generated images count:')
 print(gen_img_cnt)
 
+# Archive the IMG_SIZE folder
+shutil.make_archive(f'{IMG_SIZE}', 'zip', f'{IMG_SIZE}')
+
 # Note end time
 end = time.time()
 
