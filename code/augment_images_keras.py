@@ -21,7 +21,7 @@ train_prop = 0.8
 
 # Folder paths
 # FOLDER_PREFIX = f'F:/github/Drones_For_Structural_Audit/dataset/internal/{IMG_SIZE}'
-FOLDER_PREFIX = f'/content/drive/My Drive/{IMG_SIZE}'
+FOLDER_PREFIX = f'/content/{IMG_SIZE}'
 RAW_FOLDER = f'{FOLDER_PREFIX}/raw'
 SPLIT_FOLDER = f'{FOLDER_PREFIX}/split'
 NO_DISTORT_AUG_FOLDER = f'{FOLDER_PREFIX}/no_dist_aug'
@@ -183,6 +183,9 @@ print('Original images count')
 print(num_samples)
 print('Generated images count:')
 print(gen_img_cnt)
+
+# Copy files from colab file system to drive
+shutil.copytree(src=FOLDER_PREFIX, dst='/content/drive/My Drive')
 
 # Note end time
 end = time.time()
