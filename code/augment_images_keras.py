@@ -185,6 +185,8 @@ print('Generated images count:')
 print(gen_img_cnt)
 
 # Copy files from colab file system to drive
+if os.path.exists(f'/content/drive/My Drive/{IMG_SIZE}'):
+  shutil.rmtree(f'/content/drive/My Drive/{IMG_SIZE}', onerror=lambda a,b,c: _)
 shutil.copytree(src=FOLDER_PREFIX, dst=f'/content/drive/My Drive/{IMG_SIZE}')
 
 # Note end time
