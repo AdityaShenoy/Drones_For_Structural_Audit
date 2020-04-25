@@ -2,9 +2,7 @@ import tensorflow as tf
 import numpy as np
 import time
 import os
-import shutil
 from PIL import Image
-from IPython.display import clear_output
 import sys
 
 # Note start time
