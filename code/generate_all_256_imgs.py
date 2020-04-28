@@ -1,6 +1,7 @@
 from PIL import Image
 import threading
 import os
+import shutil
 import time
 
 # Folder paths
@@ -74,11 +75,11 @@ with os.scandir(ALL_IMAGES_FOLDER) as img_folder:
     print(f'Total execution time: {exec_time}s (' + \
           f'{exec_time // 3600}h {(exec_time // 60) % 60}m {exec_time % 60}s)')
 
-    # Trim the sample folder images or proceed for next image
-    inp = input('trim / next: ')
-
     # Loop infinitely
     while True:
+
+      # Trim the sample folder images or proceed for next image
+      inp = input('trim / next: ')
 
       # If input is trim
       if inp == 'trim':
@@ -112,8 +113,9 @@ with os.scandir(ALL_IMAGES_FOLDER) as img_folder:
       # If input is next
       elif inp == 'next':
 
+        # Remove all the previous images from the folder
+        shutil.rmtree(INPUT_FOLDER)
+        os.mkdir(INPUT_FOLDER)
+
         # Break the loop to proceed to next image
         break
-
-      # Trim the sample folder images or proceed for next image
-      inp = input('trim / next: ')
