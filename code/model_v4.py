@@ -250,9 +250,8 @@ plt.title('Loss vs Epochs')
 plt.legend()
 plt.savefig(f'{PLOTS}/loss_vs_epochs.jpg')
 
-# Pickle the model
-with open(f'{ROOT}/model', 'wb') as f:
-  pickle.dump(model, f)
+# Save model
+model.save(f'{ROOT}/model/')
 
 # Archive the root and copy to drive
 shutil.make_archive('root', 'zip', ROOT)
