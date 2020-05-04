@@ -128,7 +128,7 @@ def augment_imgs(class_):
         # Print progress
         thread_msg[class_] = f'Completed {l} / 20000'
 
-        # If the augmentation ration has been achieved
+        # If the augmentation ratio has been achieved
         if l == (aug_ratio[class_] * file_num):
           break
 
