@@ -8,6 +8,7 @@ import time
 import matplotlib.pyplot as plt
 import threading
 from IPython.display import clear_output
+import pickle
 
 # Note starting time
 start = time.time()
@@ -23,7 +24,8 @@ BATCH_SIZE = 32
 CLASSES = 'cdnp'
 
 # Folder and file paths
-RENAMED_FILTERED_SAMPLES_DRIVE_ZIP = '/content/drive/My Drive/renamed_filtered_samples.zip'
+DRIVE = '/content/drive/My Drive'
+RENAMED_FILTERED_SAMPLES_DRIVE_ZIP = f'{DRIVE}/renamed_filtered_samples.zip'
 ROOT = '/content/root'
 RENAMED_FILTERED_SAMPLES_ZIP = f'{ROOT}/renamed_filtered_samples.zip'
 RENAMED_FILTERED_SAMPLES = f'{ROOT}/renamed_filtered_samples'
@@ -165,12 +167,14 @@ def split(tid):
 thread_msg = {tid: '' for tid in range(4)}
 thread_finished = {tid: False for tid in range(4)}
 for tid in range(4):
-  threading.Thread(target=dist, args=(tid,)).start()
+  threading.Thread(target=split, args=(tid,)).start()
 while not all(thread_finished.values()):
   clear_output()
   print(msg)
   print(*thread_msg.items(), sep='\n')
   time.sleep(1)
+clear_output()
+print(msg)
 
 # Debugging
 for class_ in CLASSES:
@@ -245,6 +249,14 @@ plt.plot(epochs, val_loss, 'b', label='Validation Loss')
 plt.title('Loss vs Epochs')
 plt.legend()
 plt.savefig(f'{PLOTS}/loss_vs_epochs.jpg')
+
+# Pickle the model
+with open(f'{ROOT}/model', 'wb') as f:
+  pickle.dump(model, f)
+
+# Archive the root and copy to drive
+shutil.make_archive('root', 'zip', ROOT)
+shutil.copy('/content/root.zip', DRIVE)
 
 # Note ending time
 end = time.time()
