@@ -26,6 +26,7 @@ ROOT = f'{CONTENT}/root'
 TRAIN = f'{ROOT}/train'
 TEST = f'{ROOT}/test'
 PLOTS = f'{ROOT}/plots'
+MODEL = f'{ROOT}/content/'
 DRIVE_ROOT_ZIP = f'{DRIVE}/root_{KERAS_DISTORTION_SCALE}.zip'
 ROOT_ZIP = f'{CONTENT}/root_{KERAS_DISTORTION_SCALE}.zip'
 MODEL_VERSION = 0
@@ -51,14 +52,14 @@ model = tf.keras.models.Sequential([
   tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu',
                          input_shape=(IMG_SIZE, IMG_SIZE, 3)),
   tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Conv2D(filters=32, kernel_size=(3,3), activation='relu'),
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
   tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), activation='relu'),
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
   tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), activation='relu'),
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
   tf.keras.layers.MaxPooling2D(2, 2),
   tf.keras.layers.Flatten(),
-  tf.keras.layers.Dense(512, activation='relu'),
+  tf.keras.layers.Dense(32, activation='relu'),
   tf.keras.layers.Dense(len(CLASSES), activation='softmax')
 ])
 
@@ -115,11 +116,11 @@ plt.legend()
 plt.savefig(LOSS)
 
 # Save model
-model.save()
+model.save(MODEL)
 
 # Archive the root and copy to drive
 shutil.make_archive(ROOT_ZIP[:-4], 'zip', ROOT)
-shutil.copy(ROOT_ZIP, DRIVE)
+shutil.move(ROOT_ZIP, DRIVE)
 
 # Note ending time
 end = time.time()
