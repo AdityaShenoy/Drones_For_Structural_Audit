@@ -29,7 +29,7 @@ NO_DIST = f'{ROOT}/no_dist'
 DIST = f'{ROOT}/dist'
 TRAIN = f'{ROOT}/train'
 TEST = f'{ROOT}/test'
-ROOT_ZIP = f'{CONTENT}/root_{KERAS_DISTORTION_SCALE}.zip'
+ROOT_ZIP = f'{CONTENT}/root.zip'
 
 # For all following folders,
 # if the folders already exists delete the folder and make the folders and subfolders

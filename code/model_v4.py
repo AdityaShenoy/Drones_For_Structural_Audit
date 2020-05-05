@@ -11,7 +11,7 @@ start = time.time()
 
 # Constants
 IMG_SIZE = 256
-KERAS_DISTORTION_SCALE = 4
+KERAS_DISTORTION_SCALE = 2
 DATASET_SIZE = 4 * 625 * 8 * KERAS_DISTORTION_SCALE
 TRAIN_PROP = 0.8
 TRAINING_SIZE = int(DATASET_SIZE * TRAIN_PROP)
@@ -26,9 +26,9 @@ ROOT = f'{CONTENT}/root'
 TRAIN = f'{ROOT}/train'
 TEST = f'{ROOT}/test'
 PLOTS = f'{ROOT}/plots'
-MODEL = f'{ROOT}/content/'
-DRIVE_ROOT_ZIP = f'{DRIVE}/root_{KERAS_DISTORTION_SCALE}.zip'
-ROOT_ZIP = f'{CONTENT}/root_{KERAS_DISTORTION_SCALE}.zip'
+MODEL = f'{ROOT}/model/'
+DRIVE_ROOT_ZIP = f'{DRIVE}/root.zip'
+ROOT_ZIP = f'{CONTENT}/root.zip'
 MODEL_VERSION = 0
 ARCHITECTURE = f'{PLOTS}/model_{MODEL_VERSION}.jpg'
 ACCURACY = f'{PLOTS}/accuracy_vs_epochs_{MODEL_VERSION}.jpg'
@@ -42,7 +42,7 @@ if os.path.exists(ROOT):
   shutil.rmtree(ROOT, onerror=lambda a,b,c:0)
 os.mkdir(ROOT)
 os.mkdir(PLOTS)
-shutil.move(DRIVE_ROOT_ZIP, CONTENT)
+shutil.copy(DRIVE_ROOT_ZIP, CONTENT)
 shutil.unpack_archive(ROOT_ZIP, ROOT)
 os.unlink(ROOT_ZIP)
 
