@@ -21,32 +21,33 @@ CLASSES = 'cdnp'
 CONTENT = '/content'
 DRIVE = f'{CONTENT}/drive/My Drive'
 DRIVE_RENAMED_FILTERED_SAMPLES_ZIP = f'{DRIVE}/renamed_filtered_samples.zip'
-ROOT = f'{CONTENT}/root'
-RENAMED_FILTERED_SAMPLES_ZIP = f'{ROOT}/renamed_filtered_samples.zip'
-RENAMED_FILTERED_SAMPLES = f'{ROOT}/renamed_filtered_samples'
-RAW = f'{ROOT}/raw'
-NO_DIST = f'{ROOT}/no_dist'
-DIST = f'{ROOT}/dist'
-TRAIN = f'{ROOT}/train'
-TEST = f'{ROOT}/test'
-ROOT_ZIP = f'{CONTENT}/root.zip'
+DATASET = f'{CONTENT}/dataset'
+RENAMED_FILTERED_SAMPLES = f'{DATASET}/renamed_filtered_samples'
+RENAMED_FILTERED_SAMPLES_ZIP = f'{RENAMED_FILTERED_SAMPLES}.zip'
+RAW = f'{DATASET}/raw'
+NO_DIST = f'{DATASET}/no_dist'
+DIST = f'{DATASET}/dist'
+TRAIN = f'{DATASET}/train'
+VALIDATE = f'{DATASET}/validate'
+DATASET_ZIP = f'{DATASET}.zip'
+DRIVE_DATASET_ZIP = f'{DRIVE}/dataset.zip'
 
 # For all following folders,
 # if the folders already exists delete the folder and make the folders and subfolders
 print('Deleting old folders and making new empty folders...')
 msg = 'Deleting old folders and making new empty folders...\n'
-if os.path.exists(ROOT):
-  shutil.rmtree(ROOT, onerror=lambda a,b,c:0)
-for FOLDER in [ROOT, RENAMED_FILTERED_SAMPLES, RAW, NO_DIST, DIST, TRAIN, TEST]:
+if os.path.exists(DATASET):
+  shutil.rmtree(DATASET, onerror=lambda a,b,c:0)
+for FOLDER in [DATASET, RENAMED_FILTERED_SAMPLES, RAW, NO_DIST, DIST, TRAIN, VALIDATE]:
   os.mkdir(FOLDER)
-  if FOLDER not in [ROOT, RENAMED_FILTERED_SAMPLES]:
+  if FOLDER not in [DATASET, RENAMED_FILTERED_SAMPLES]:
     for class_ in CLASSES:
       os.mkdir(f'{FOLDER}/{class_}')
 
 # Copy the zip file into colab and extract it
 print('Copying zip file from drive to colab file system...')
 msg += 'Copying zip file from drive to colab file system...\n'
-shutil.copy(src=DRIVE_RENAMED_FILTERED_SAMPLES_ZIP, dst=ROOT)
+shutil.copy(src=DRIVE_RENAMED_FILTERED_SAMPLES_ZIP, dst=DATASET)
 shutil.unpack_archive(filename=RENAMED_FILTERED_SAMPLES_ZIP,
                       extract_dir=RENAMED_FILTERED_SAMPLES, format='zip')
 os.unlink(RENAMED_FILTERED_SAMPLES_ZIP)
@@ -146,9 +147,9 @@ for class_ in CLASSES:
   print(class_, len(os.listdir(f'{DIST}/{class_}')))
   msg += f"{class_} {len(os.listdir(f'{DIST}/{class_}'))}\n"
 
-# Split the distorted images into train and test folders
-print('Splitting the transformed images into train and test folders...')
-msg += 'Splitting the transformed images into train and test folders...'
+# Split the distorted images into train and validate folders
+print('Splitting the transformed images into train and validate folders...')
+msg += 'Splitting the transformed images into train and validate folders...'
 def split(tid):
   class_ = CLASSES[tid]
   files = os.listdir(f'{DIST}/{class_}')
@@ -156,10 +157,10 @@ def split(tid):
   for file_num, file in enumerate(files[:int(TRAIN_PROP * len(files))]):
     shutil.copy(src=f'{DIST}/{class_}/{file}',
                 dst=f'{TRAIN}/{class_}/{file_num:05}.jpg')
-  thread_msg[tid] = 'Copying testing images'
+  thread_msg[tid] = 'Copying validating images'
   for file_num, file in enumerate(files[int(TRAIN_PROP * len(files)):]):
     shutil.copy(src=f'{DIST}/{class_}/{file}',
-                dst=f'{TEST}/{class_}/{file_num:05}.jpg')
+                dst=f'{VALIDATE}/{class_}/{file_num:05}.jpg')
   thread_msg[tid] = 'Thread completed'
   thread_finished[tid] = True
 thread_msg = {tid: '' for tid in range(4)}
@@ -177,11 +178,14 @@ print(msg)
 # Debugging
 for class_ in CLASSES:
   print(class_, len(os.listdir(f'{TRAIN}/{class_}')))
-  print(class_, len(os.listdir(f'{TEST}/{class_}')))
+  print(class_, len(os.listdir(f'{VALIDATE}/{class_}')))
 
 # Archive the root and copy to drive
-shutil.make_archive(ROOT_ZIP[:-4], 'zip', ROOT)
-shutil.move(ROOT_ZIP, DRIVE)
+print('Archiving the root folder and storing it in drive...')
+shutil.make_archive(DATASET, 'zip', DATASET)
+if os.path.exists(DRIVE_DATASET_ZIP):
+  os.unlink(DRIVE_DATASET_ZIP)
+shutil.move(DATASET_ZIP, DRIVE)
 
 # Note ending time
 end = time.time()

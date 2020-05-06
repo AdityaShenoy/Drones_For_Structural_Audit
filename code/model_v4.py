@@ -15,36 +15,37 @@ KERAS_DISTORTION_SCALE = 2
 DATASET_SIZE = 4 * 625 * 8 * KERAS_DISTORTION_SCALE
 TRAIN_PROP = 0.8
 TRAINING_SIZE = int(DATASET_SIZE * TRAIN_PROP)
-TESTING_SIZE = DATASET_SIZE - TRAINING_SIZE
+VALIDATING_SIZE = DATASET_SIZE - TRAINING_SIZE
 BATCH_SIZE = 32
 CLASSES = 'cdnp'
 
 # Folder and file paths
 CONTENT = '/content'
 DRIVE = f'{CONTENT}/drive/My Drive'
-ROOT = f'{CONTENT}/root'
-TRAIN = f'{ROOT}/train'
-TEST = f'{ROOT}/test'
-PLOTS = f'{ROOT}/plots'
-MODEL = f'{ROOT}/model/'
-DRIVE_ROOT_ZIP = f'{DRIVE}/root.zip'
-ROOT_ZIP = f'{CONTENT}/root.zip'
-MODEL_VERSION = 0
-ARCHITECTURE = f'{PLOTS}/model_{MODEL_VERSION}.jpg'
-ACCURACY = f'{PLOTS}/accuracy_vs_epochs_{MODEL_VERSION}.jpg'
-LOSS = f'{PLOTS}/loss_vs_epochs_{MODEL_VERSION}.jpg'
+DATASET = f'{CONTENT}/dataset'
+MODEL = f'{CONTENT}/model'
+TRAIN = f'{DATASET}/train'
+VALIDATE = f'{DATASET}/validate'
+PLOTS = f'{MODEL}/plots'
+SAVE = f'{MODEL}/save/'
+DRIVE_DATASET_ZIP = f'{DRIVE}/dataset.zip'
+DATASET_ZIP = f'{DATASET}.zip'
+ARCHITECTURE = f'{PLOTS}/model.jpg'
+ACCURACY = f'{PLOTS}/accuracy_vs_epochs.jpg'
+LOSS = f'{PLOTS}/loss_vs_epochs.jpg'
+DRIVE_MODEL_ZIP = f'{DRIVE}/model.zip'
+MODEL_ZIP = f'{MODEL}.zip'
 
 # For all following folders,
 # if the folders already exists delete the folder and make the folders and subfolders
 print('Deleting old folders and making new empty folders...')
-msg = 'Deleting old folders and making new empty folders...\n'
-if os.path.exists(ROOT):
-  shutil.rmtree(ROOT, onerror=lambda a,b,c:0)
-os.mkdir(ROOT)
-os.mkdir(PLOTS)
-shutil.copy(DRIVE_ROOT_ZIP, CONTENT)
-shutil.unpack_archive(ROOT_ZIP, ROOT)
-os.unlink(ROOT_ZIP)
+for FOLDER in [DATASET, MODEL, PLOTS]:
+  if os.path.exists(FOLDER):
+    shutil.rmtree(FOLDER, onerror=lambda a,b,c:0)
+  os.mkdir(FOLDER)
+shutil.copy(DRIVE_DATASET_ZIP, CONTENT)
+shutil.unpack_archive(DATASET_ZIP, DATASET)
+os.unlink(DATASET_ZIP)
 
 # Initialize the ML model
 print('Building model...')
@@ -74,12 +75,12 @@ model.compile(
   metrics = ['accuracy']
 )
 
-# Set up the training and testing dataset generator
+# Set up the training and validating dataset generator
 print('Setting up dataset generators...')
 train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
               .flow_from_directory(directory = TRAIN)
-test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = TEST)
+validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
+              .flow_from_directory(directory = VALIDATE)
 
 # Training the model
 print('Training the model...')
@@ -87,9 +88,9 @@ history = model.fit(
   x = train_gen,
   epochs = 15,
   verbose = 1,
-  validation_data = test_gen,
+  validation_data = validate_gen,
   steps_per_epoch = TRAINING_SIZE // BATCH_SIZE,
-  validation_steps = TESTING_SIZE // BATCH_SIZE
+  validation_steps = VALIDATING_SIZE // BATCH_SIZE
 )
 
 # Values for the graphs
@@ -116,11 +117,14 @@ plt.legend()
 plt.savefig(LOSS)
 
 # Save model
-model.save(MODEL)
+model.save(SAVE)
 
-# Archive the root and copy to drive
-shutil.make_archive(ROOT_ZIP[:-4], 'zip', ROOT)
-shutil.move(ROOT_ZIP, DRIVE)
+# Archive the model and copy to drive
+print('Archiving the model folder and storing it in drive...')
+shutil.make_archive(MODEL, 'zip', MODEL)
+if os.path.exists(DRIVE_MODEL_ZIP):
+  os.unlink(DRIVE_MODEL_ZIP)
+shutil.move(MODEL_ZIP, DRIVE)
 
 # Note ending time
 end = time.time()

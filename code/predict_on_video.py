@@ -11,25 +11,28 @@ IMG_SIZE = 256
 COLOR_CODE = (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0) #cdnp
 
 # File and folder paths
-CONTENT = '/content'
+DESKTOP = 'C:/Users/admin/Desktop/content'
+CONTENT = '/content' if not os.path.exists(DESKTOP) else DESKTOP
 DRIVE = f'{CONTENT}/drive/My Drive'
-DRIVE_ROOT_ZIP = f'{DRIVE}/root.zip'
-ROOT_ZIP = f'{CONTENT}/root.zip'
-ROOT = f'{CONTENT}/root'
-MODEL = f'{ROOT}/model/'
+DRIVE_MODEL_ZIP = f'{DRIVE}/model.zip'
+MODEL = f'{CONTENT}/model'
+MODEL_ZIP = f'{MODEL}.zip'
+SAVE = f'{MODEL}/save/'
 DRIVE_ALL_IMAGES_ZIP = f'{DRIVE}/all_images.zip'
 ALL_IMAGES_ZIP = f'{CONTENT}/all_images.zip'
 ALL_IMAGES = f'{CONTENT}/all_images'
 OUTPUT = f'{CONTENT}/output'
+OUTPUT_ZIP = f'{OUTPUT}.zip'
+DRIVE_OUTPUT_ZIP = f'{DRIVE}/output.zip'
 
 # For all following folders,
 # if the folders already exists delete the folder and make the folders and subfolders
 print('Deleting old folders and making new empty folders...')
-for FOLDER in [ROOT, ALL_IMAGES, OUTPUT]:
+for FOLDER in [MODEL, ALL_IMAGES, OUTPUT]:
   if os.path.exists(FOLDER):
     shutil.rmtree(FOLDER, onerror=lambda a,b,c:0)
   os.mkdir(FOLDER)
-for src, inter, dst in [(DRIVE_ROOT_ZIP, ROOT_ZIP, ROOT),
+for src, inter, dst in [(DRIVE_MODEL_ZIP, MODEL_ZIP, MODEL),
                         (DRIVE_ALL_IMAGES_ZIP, ALL_IMAGES_ZIP, ALL_IMAGES)]:
   shutil.copy(src, CONTENT)
   shutil.unpack_archive(inter, dst)
@@ -55,7 +58,7 @@ def predict(img):
       model_output = model.predict(
         np.asarray(window).reshape(1, IMG_SIZE, IMG_SIZE, 3))
       
-      prediction = list(model_output[0]).index(1)
+      prediction = model_output[0].argmax()
 
       window_result = Image.new('RGB', (IMG_SIZE, IMG_SIZE), 
         COLOR_CODE[prediction])
@@ -64,12 +67,20 @@ def predict(img):
 
 # Load the model
 print('Loading the model...')
-model = tf.keras.models.load_model(MODEL)
+model = tf.keras.models.load_model(SAVE)
 
 # For all camera images, predict on the sliding window mechanism
 print('Predicting on camera images...')
 with os.scandir(ALL_IMAGES) as folder:
-  for file in folder:
+  for file_num, file in enumerate(folder, start=1):
     img = Image.open(file.path)
     result_img = predict(img)
     result_img.save(f'{OUTPUT}/{file.name}')
+    print(f'Processed {file_num} images...')
+
+# Archive and store output in drive
+print('Archiving output folder and storing it in drive...')
+shutil.make_archive(OUTPUT, 'zip', OUTPUT)
+if os.path.exists(DRIVE_OUTPUT_ZIP):
+  os.unlink(DRIVE_OUTPUT_ZIP)
+shutil.move(OUTPUT_ZIP, DRIVE)
