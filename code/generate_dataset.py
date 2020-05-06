@@ -8,6 +8,7 @@ import time
 import threading
 from IPython.display import clear_output
 
+
 # Note starting time
 start = time.time()
 
@@ -32,6 +33,12 @@ TRAIN = f'{DATASET}/train'
 VALIDATE = f'{DATASET}/validate'
 DATASET_ZIP = f'{DATASET}.zip'
 DRIVE_DATASET_ZIP = f'{DRIVE}/dataset.zip'
+
+def clear():
+  if os.path.exists(DESKTOP):
+    os.system('cls')
+  else:
+    clear_output()
 
 # For all following folders,
 # if the folders already exists delete the folder and make the folders and subfolders
@@ -92,7 +99,7 @@ thread_finished = {tid: False for tid in range(4)}
 for tid in range(4):
   threading.Thread(target=non_dist, args=(tid,)).start()
 while not all(thread_finished.values()):
-  clear_output()
+  clear()
   print(msg)
   print(*thread_msg.items(), sep='\n')
   time.sleep(1)
@@ -138,7 +145,7 @@ thread_finished = {tid: False for tid in range(4)}
 for tid in range(4):
   threading.Thread(target=dist, args=(tid,)).start()
 while not all(thread_finished.values()):
-  clear_output()
+  clear()
   print(msg)
   print(*thread_msg.items(), sep='\n')
   time.sleep(1)
@@ -169,11 +176,11 @@ thread_finished = {tid: False for tid in range(4)}
 for tid in range(4):
   threading.Thread(target=split, args=(tid,)).start()
 while not all(thread_finished.values()):
-  clear_output()
+  clear()
   print(msg)
   print(*thread_msg.items(), sep='\n')
   time.sleep(1)
-clear_output()
+clear()
 print(msg)
 
 # Debugging
