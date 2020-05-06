@@ -20,7 +20,8 @@ BATCH_SIZE = 32
 CLASSES = 'cdnp'
 
 # Folder and file paths
-CONTENT = '/content'
+DESKTOP = 'C:/Users/admin/Desktop/content'
+CONTENT = '/content' if not os.path.exists(DESKTOP) else DESKTOP
 DRIVE = f'{CONTENT}/drive/My Drive'
 DATASET = f'{CONTENT}/dataset'
 MODEL = f'{CONTENT}/model'
