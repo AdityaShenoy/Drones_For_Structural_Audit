@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 import time
 import matplotlib.pyplot as plt
+import pickle
 
 # Note starting time
 start = time.time()
@@ -23,14 +24,15 @@ CLASSES = 'cdnp'
 DESKTOP = 'C:/Users/admin/Desktop/content'
 CONTENT = '/content' if not os.path.exists(DESKTOP) else DESKTOP
 DRIVE = f'{CONTENT}/drive/My Drive'
+DRIVE_DATASET_ZIP = f'{DRIVE}/dataset.zip'
 DATASET = f'{CONTENT}/dataset'
-MODEL = f'{CONTENT}/model'
+DATASET_ZIP = f'{DATASET}.zip'
 TRAIN = f'{DATASET}/train'
 VALIDATE = f'{DATASET}/validate'
+MODEL = f'{CONTENT}/model'
+LAYERS = f'{CONTENT}/layers.txt'
+WEIGHTS = f'{MODEL}/weights'
 PLOTS = f'{MODEL}/plots'
-SAVE = f'{MODEL}/save/'
-DRIVE_DATASET_ZIP = f'{DRIVE}/dataset.zip'
-DATASET_ZIP = f'{DATASET}.zip'
 ARCHITECTURE = f'{PLOTS}/model.jpg'
 ACCURACY = f'{PLOTS}/accuracy_vs_epochs.jpg'
 LOSS = f'{PLOTS}/loss_vs_epochs.jpg'
@@ -50,20 +52,8 @@ os.unlink(DATASET_ZIP)
 
 # Initialize the ML model
 print('Building model...')
-model = tf.keras.models.Sequential([
-  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu',
-                         input_shape=(IMG_SIZE, IMG_SIZE, 3)),
-  tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
-  tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
-  tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
-  tf.keras.layers.MaxPooling2D(2, 2),
-  tf.keras.layers.Flatten(),
-  tf.keras.layers.Dense(32, activation='relu'),
-  tf.keras.layers.Dense(len(CLASSES), activation='softmax')
-])
+with open(LAYERS) as f:
+  model = eval(f.read())
 
 # Visualize the model
 tf.keras.utils.plot_model(model, to_file=ARCHITECTURE, show_shapes=True)
@@ -117,8 +107,10 @@ plt.title('Loss vs Epochs')
 plt.legend()
 plt.savefig(LOSS)
 
-# Save model
-model.save(SAVE)
+# Save model weights
+w = model.get_weights()
+with open(WEIGHTS, 'wb') as f:
+  pickle.dump(w, f)
 
 # Archive the model and copy to drive
 print('Archiving the model folder and storing it in drive...')
