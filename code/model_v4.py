@@ -96,11 +96,14 @@ y_pred = model.predict(
   verbose = 1,
   steps = TESTING_SIZE // BATCH_SIZE
 )
-y_actual = np.asarray(([0] * (TESTING_SIZE // 4) + \
-                       [1] * (TESTING_SIZE // 4) + \
-                       [2] * (TESTING_SIZE // 4) + \
-                       [3] * (TESTING_SIZE // 4)))
-tf.confusion_matrix(y_actual, y_pred)
+y_actual = []
+for i, class_ in enumerate(CLASSES):
+  a = [0] * len(CLASSES)
+  a[i] = 1
+  for _ in range(TESTING_SIZE // len(CLASSES)):
+    y_actual.append(a.copy())
+y_actual = np.asarray(y_actual)
+print(tf.math.confusion_matrix(y_actual, y_pred))
 
 # Values for the graphs
 print('Plotting graphs...')
