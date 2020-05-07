@@ -7,7 +7,6 @@ import random
 import time
 import threading
 from IPython.display import clear_output
-import math
 
 # Note starting time
 start = time.time()
@@ -158,7 +157,7 @@ def dist(tid):
       thread_msg[tid] = f'Processed {file_num + 1} validate images'
       img_cntr += 1
       break
-  for file_num in range(math.ceil((1 - VALIDATE_SPLIT) * num_files)):
+  for file_num in range(round((1 - VALIDATE_SPLIT) * num_files)):
     img = np.asarray(Image.open(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')) \
       .reshape(1, IMG_SIZE, IMG_SIZE, 3)
     for _ in val_test_datagen.flow(
