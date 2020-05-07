@@ -8,15 +8,16 @@ import time
 import threading
 from IPython.display import clear_output
 
-
 # Note starting time
 start = time.time()
 
 # Constants
 IMG_SIZE = 256
 KERAS_DISTORTION_SCALE = 2
-TRAIN_PROP = 0.8
+TRAIN_SPLIT = 0.6
+VALIDATE_SPLIT = 0.8
 CLASSES = 'cdnp'
+NUM_SAMPLES = 625
 
 # Folder and file paths
 DESKTOP = 'C:/Users/admin/Desktop/content'
@@ -28,9 +29,9 @@ RENAMED_FILTERED_SAMPLES = f'{DATASET}/renamed_filtered_samples'
 RENAMED_FILTERED_SAMPLES_ZIP = f'{RENAMED_FILTERED_SAMPLES}.zip'
 RAW = f'{DATASET}/raw'
 NO_DIST = f'{DATASET}/no_dist'
-DIST = f'{DATASET}/dist'
 TRAIN = f'{DATASET}/train'
 VALIDATE = f'{DATASET}/validate'
+TEST = f'{DATASET}/test'
 DATASET_ZIP = f'{DATASET}.zip'
 DRIVE_DATASET_ZIP = f'{DRIVE}/dataset.zip'
 
@@ -46,7 +47,7 @@ print('Deleting old folders and making new empty folders...')
 msg = 'Deleting old folders and making new empty folders...\n'
 if os.path.exists(DATASET):
   shutil.rmtree(DATASET, onerror=lambda a,b,c:0)
-for FOLDER in [DATASET, RENAMED_FILTERED_SAMPLES, RAW, NO_DIST, DIST, TRAIN, VALIDATE]:
+for FOLDER in [DATASET, RENAMED_FILTERED_SAMPLES, RAW, NO_DIST, TRAIN, VALIDATE, TEST]:
   os.mkdir(FOLDER)
   if FOLDER not in [DATASET, RENAMED_FILTERED_SAMPLES]:
     for class_ in CLASSES:
@@ -60,11 +61,11 @@ shutil.unpack_archive(filename=RENAMED_FILTERED_SAMPLES_ZIP,
                       extract_dir=RENAMED_FILTERED_SAMPLES, format='zip')
 os.unlink(RENAMED_FILTERED_SAMPLES_ZIP)
 
-# Pick random 625 samples from the renamed filtered samples
-print('Selecting random 625 raw images...')
-msg += 'Selecting random 625 raw images...\n'
+# Pick random NUM_SAMPLES samples from the renamed filtered samples
+print(f'Selecting random {NUM_SAMPLES} raw images...')
+msg += f'Selecting random {NUM_SAMPLES} raw images...\n'
 for class_ in CLASSES:
-  files = random.sample(os.listdir(f'{RENAMED_FILTERED_SAMPLES}/{class_}'), k=625)
+  files = random.sample(os.listdir(f'{RENAMED_FILTERED_SAMPLES}/{class_}'), k=NUM_SAMPLES)
   for file_num, file in enumerate(files):
     shutil.copy(src=f'{RENAMED_FILTERED_SAMPLES}/{class_}/{file}',
                 dst=f'{RAW}/{class_}/{file_num:05}.jpg')
@@ -81,18 +82,18 @@ msg += 'Applying non distorting transformations on the raw images...\n'
 def non_dist(tid):
   class_ = CLASSES[tid]
   img_cntr = 0
-  with os.scandir(f'{RAW}/{class_}') as folder:
-    for file in folder:
-      img = Image.open(file.path)
-      img.save(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')
+  for file_num in range(NUM_SAMPLES):
+    img = Image.open(f'{RAW}/{class_}/{file_num:05}.jpg')
+    img.save(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')
+    img_cntr += 1
+    for op in [Image.ROTATE_90, Image.ROTATE_180, Image.ROTATE_270,
+              Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM,
+              Image.TRANSPOSE, Image.TRANSVERSE]:
+      img.transpose(op).save(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')
       img_cntr += 1
-      for op in [Image.ROTATE_90, Image.ROTATE_180, Image.ROTATE_270,
-                Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM,
-                Image.TRANSPOSE, Image.TRANSVERSE]:
-        img.transpose(op).save(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')
-        img_cntr += 1
-        thread_msg[tid] = f'Processed {img_cntr} images'
+      thread_msg[tid] = f'Processed {img_cntr} images'
   thread_msg[tid] = 'Thread completed'
+  time.sleep(1)
   thread_finished[tid] = True
 thread_msg = {tid: '' for tid in range(4)}
 thread_finished = {tid: False for tid in range(4)}
@@ -109,10 +110,10 @@ for class_ in CLASSES:
   print(class_, len(os.listdir(f'{NO_DIST}/{class_}')))
   msg += f"{class_} {len(os.listdir(f'{NO_DIST}/{class_}'))}\n"
 
-# Applying distorting transformations to the non distorted images
+# Applying distorting transformations to the non distorted images for training
 print('Applying distorting transformations on the images...')
 msg += 'Applying distorting transformations on the images...\n'
-datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
   rotation_range = 44,
   width_shift_range = 0.2,
   height_shift_range=0.2,
@@ -121,24 +122,61 @@ datagen = tf.keras.preprocessing.image.ImageDataGenerator(
   horizontal_flip=True,
   vertical_flip=True,
 )
+val_test_datagen = tf.keras.preprocessing.image.ImageDataGenerator()
 def dist(tid):
   class_ = CLASSES[tid]
-  with os.scandir(f'{NO_DIST}/{class_}') as folder:
-    for file_num, file in enumerate(folder, start=1):
-      img = np.asarray(Image.open(file.path)).reshape(1, IMG_SIZE, IMG_SIZE, 3)
-      for _ in datagen.flow(
-        x = img,
-        batch_size = 1,
-        shuffle = False,
-        save_to_dir = f'{DIST}/{class_}',
-        save_prefix = file.name[:-4],
-        save_format = 'jpeg'
-      ):
-        l = len(os.listdir(f'{DIST}/{class_}'))
-        thread_msg[tid] = f'Processed {l} images'
-        if l == file_num * KERAS_DISTORTION_SCALE:
-          break
+  num_files = NUM_SAMPLES * 8
+  img_cntr = 0
+  for file_num in range(int(TRAIN_SPLIT * num_files)):
+    img = np.asarray(Image.open(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')) \
+      .reshape(1, IMG_SIZE, IMG_SIZE, 3)
+    for _ in train_datagen.flow(
+      x = img,
+      batch_size = 1,
+      shuffle = False,
+      save_to_dir = f'{TRAIN}/{class_}',
+      save_prefix = f'{img_cntr:05}',
+      save_format = 'jpeg'
+    ):
+      l = len(os.listdir(f'{TRAIN}/{class_}'))
+      thread_msg[tid] = f'Processed {l} train images'
+      if l == (file_num + 1) * KERAS_DISTORTION_SCALE:
+        img_cntr += 1
+        break
+  for file_num in range(int((VALIDATE_SPLIT - TRAIN_SPLIT) * num_files)):
+    img = np.asarray(Image.open(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')) \
+      .reshape(1, IMG_SIZE, IMG_SIZE, 3)
+    for _ in val_test_datagen.flow(
+      x = img,
+      batch_size = 1,
+      shuffle = False,
+      save_to_dir = f'{VALIDATE}/{class_}',
+      save_prefix = f'{img_cntr:05}',
+      save_format = 'jpeg'
+    ):
+      l = len(os.listdir(f'{VALIDATE}/{class_}'))
+      thread_msg[tid] = f'Processed {l} validate images'
+      if l == (file_num + 1):
+        img_cntr += 1
+        break
+  for file_num in range(int((1 - VALIDATE_SPLIT) * num_files)):
+    img = np.asarray(Image.open(f'{NO_DIST}/{class_}/{img_cntr:05}.jpg')) \
+      .reshape(1, IMG_SIZE, IMG_SIZE, 3)
+    for _ in val_test_datagen.flow(
+      x = img,
+      batch_size = 1,
+      shuffle = False,
+      save_to_dir = f'{TEST}/{class_}',
+      save_prefix = f'{img_cntr:05}',
+      save_format = 'jpeg'
+    ):
+      l = len(os.listdir(f'{TEST}/{class_}'))
+      thread_msg[tid] = f'Processed {l} test images'
+      if l == (file_num + 1):
+        img_cntr += 1
+        break
   thread_msg[tid] = 'Thread completed'
+  time.sleep(1)
   thread_finished[tid] = True
 thread_msg = {tid: '' for tid in range(4)}
 thread_finished = {tid: False for tid in range(4)}
@@ -152,41 +190,9 @@ while not all(thread_finished.values()):
 
 # Debugging
 for class_ in CLASSES:
-  print(class_, len(os.listdir(f'{DIST}/{class_}')))
-  msg += f"{class_} {len(os.listdir(f'{DIST}/{class_}'))}\n"
-
-# Split the distorted images into train and validate folders
-print('Splitting the transformed images into train and validate folders...')
-msg += 'Splitting the transformed images into train and validate folders...'
-def split(tid):
-  class_ = CLASSES[tid]
-  files = os.listdir(f'{DIST}/{class_}')
-  thread_msg[tid] = 'Copying training images'
-  for file_num, file in enumerate(files[:int(TRAIN_PROP * len(files))]):
-    shutil.copy(src=f'{DIST}/{class_}/{file}',
-                dst=f'{TRAIN}/{class_}/{file_num:05}.jpg')
-  thread_msg[tid] = 'Copying validating images'
-  for file_num, file in enumerate(files[int(TRAIN_PROP * len(files)):]):
-    shutil.copy(src=f'{DIST}/{class_}/{file}',
-                dst=f'{VALIDATE}/{class_}/{file_num:05}.jpg')
-  thread_msg[tid] = 'Thread completed'
-  thread_finished[tid] = True
-thread_msg = {tid: '' for tid in range(4)}
-thread_finished = {tid: False for tid in range(4)}
-for tid in range(4):
-  threading.Thread(target=split, args=(tid,)).start()
-while not all(thread_finished.values()):
-  clear()
-  print(msg)
-  print(*thread_msg.items(), sep='\n')
-  time.sleep(1)
-clear()
-print(msg)
-
-# Debugging
-for class_ in CLASSES:
   print(class_, len(os.listdir(f'{TRAIN}/{class_}')))
   print(class_, len(os.listdir(f'{VALIDATE}/{class_}')))
+  print(class_, len(os.listdir(f'{TEST}/{class_}')))
 
 # Archive the root and copy to drive
 print('Archiving the root folder and storing it in drive...')

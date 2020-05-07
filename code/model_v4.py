@@ -13,10 +13,12 @@ start = time.time()
 # Constants
 IMG_SIZE = 256
 KERAS_DISTORTION_SCALE = 2
-DATASET_SIZE = 4 * 625 * 8 * KERAS_DISTORTION_SCALE
-TRAIN_PROP = 0.8
-TRAINING_SIZE = int(DATASET_SIZE * TRAIN_PROP)
-VALIDATING_SIZE = DATASET_SIZE - TRAINING_SIZE
+DATASET_SIZE = 4 * 625 * 8
+TRAIN_SPLIT = 0.6
+VALIDATE_SPLIT = 0.8
+TRAINING_SIZE = int(DATASET_SIZE * TRAIN_SPLIT) * KERAS_DISTORTION_SCALE
+VALIDATING_SIZE = int(DATASET_SIZE * (VALIDATE_SPLIT - TRAIN_SPLIT))
+TESTING_SIZE = int(DATASET_SIZE * (1 - VALIDATE_SPLIT))
 BATCH_SIZE = 32
 CLASSES = 'cdnp'
 
@@ -29,6 +31,7 @@ DATASET = f'{CONTENT}/dataset'
 DATASET_ZIP = f'{DATASET}.zip'
 TRAIN = f'{DATASET}/train'
 VALIDATE = f'{DATASET}/validate'
+TEST = f'{DATASET}/test'
 MODEL = f'{CONTENT}/model'
 LAYERS = f'{CONTENT}/layers.txt'
 WEIGHTS = f'{MODEL}/weights'
@@ -66,12 +69,14 @@ model.compile(
   metrics = ['accuracy']
 )
 
-# Set up the training and validating dataset generator
+# Set up the training, validating and testing dataset generator
 print('Setting up dataset generators...')
 train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
               .flow_from_directory(directory = TRAIN)
 validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
               .flow_from_directory(directory = VALIDATE)
+test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
+              .flow_from_directory(directory = TEST, shuffle=False)
 
 # Training the model
 print('Training the model...')
@@ -83,6 +88,19 @@ history = model.fit(
   steps_per_epoch = TRAINING_SIZE // BATCH_SIZE,
   validation_steps = VALIDATING_SIZE // BATCH_SIZE
 )
+
+# Testing the model
+print('Testing the model...')
+y_pred = model.predict(
+  x = test_gen,
+  verbose = 1,
+  steps = TESTING_SIZE // BATCH_SIZE
+)
+y_actual = np.asarray(([0] * (TESTING_SIZE // 4) + \
+                       [1] * (TESTING_SIZE // 4) + \
+                       [2] * (TESTING_SIZE // 4) + \
+                       [3] * (TESTING_SIZE // 4)))
+tf.confusion_matrix(y_actual, y_pred)
 
 # Values for the graphs
 print('Plotting graphs...')
