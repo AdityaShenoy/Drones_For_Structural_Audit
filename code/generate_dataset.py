@@ -184,6 +184,8 @@ while not all(thread_finished.values()):
   print(msg)
   print(*thread_msg.items(), sep='\n')
   time.sleep(1)
+clear()
+print(msg)
 
 # Debugging
 for class_ in CLASSES:
