@@ -7,7 +7,6 @@ import time
 import matplotlib.pyplot as plt
 import pickle
 from sklearn.metrics import classification_report
-import copy
 
 # Note starting time
 start = time.time()
