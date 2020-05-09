@@ -6,6 +6,8 @@ from PIL import Image
 import time
 import matplotlib.pyplot as plt
 import pickle
+from sklearn.metrics import classification_report
+import copy
 
 # Note starting time
 start = time.time()
@@ -14,13 +16,12 @@ start = time.time()
 IMG_SIZE = 256
 KERAS_DISTORTION_SCALE = 2
 DATASET_SIZE = 4 * 625 * 8
-TRAIN_SPLIT = 0.6
-VALIDATE_SPLIT = 0.8
-TRAINING_SIZE = int(DATASET_SIZE * TRAIN_SPLIT) * KERAS_DISTORTION_SCALE
-VALIDATING_SIZE = int(DATASET_SIZE * (VALIDATE_SPLIT - TRAIN_SPLIT))
-TESTING_SIZE = round(DATASET_SIZE * (1 - VALIDATE_SPLIT))
+TRAIN_SPLIT = 0.65
+TRAINING_SIZE = round(DATASET_SIZE * TRAIN_SPLIT * KERAS_DISTORTION_SCALE)
+VALIDATING_SIZE = round(DATASET_SIZE * (1 - TRAIN_SPLIT))
 BATCH_SIZE = 32
 CLASSES = 'cdnp'
+NUM_CHANNELS = 3
 
 # Folder and file paths
 DESKTOP = 'C:/Users/admin/Desktop/content'
@@ -31,10 +32,10 @@ DATASET = f'{CONTENT}/dataset'
 DATASET_ZIP = f'{DATASET}.zip'
 TRAIN = f'{DATASET}/train'
 VALIDATE = f'{DATASET}/validate'
-TEST = f'{DATASET}/test'
 MODEL = f'{CONTENT}/model'
 LAYERS = f'{CONTENT}/layers.txt'
 WEIGHTS = f'{MODEL}/weights'
+METRICS = f'{MODEL}/metrics.txt'
 PLOTS = f'{MODEL}/plots'
 ARCHITECTURE = f'{PLOTS}/model.jpg'
 ACCURACY = f'{PLOTS}/accuracy_vs_epochs.jpg'
@@ -49,6 +50,9 @@ for FOLDER in [DATASET, MODEL, PLOTS]:
   if os.path.exists(FOLDER):
     shutil.rmtree(FOLDER, onerror=lambda a,b,c:0)
   os.mkdir(FOLDER)
+
+# Copying the zip file from drive to colab file system
+print('Copying the zip file from drive to colab file system...')
 shutil.copy(DRIVE_DATASET_ZIP, CONTENT)
 shutil.unpack_archive(DATASET_ZIP, DATASET)
 os.unlink(DATASET_ZIP)
@@ -76,7 +80,7 @@ train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
 validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
               .flow_from_directory(directory = VALIDATE)
 test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = TEST, shuffle=False)
+              .flow_from_directory(directory = VALIDATE)
 
 # Training the model
 print('Training the model...')
@@ -91,19 +95,21 @@ history = model.fit(
 
 # Testing the model
 print('Testing the model...')
-y_pred = model.predict(
-  x = test_gen,
-  verbose = 1,
-  steps = TESTING_SIZE // BATCH_SIZE
-)
-y_actual = []
-for i, class_ in enumerate(CLASSES):
-  a = [0] * len(CLASSES)
-  a[i] = 1
-  for _ in range(TESTING_SIZE // len(CLASSES)):
-    y_actual.append(a.copy())
-y_actual = np.asarray(y_actual)
-print(tf.math.confusion_matrix(y_actual, y_pred))
+labels, predictions = [], []
+for i, (x, y) in enumerate(test_gen):
+  if i == VALIDATING_SIZE // BATCH_SIZE:
+    break
+  labels.extend(y.argmax(axis=1))
+  pred = model.predict(
+    x = x,
+    verbose = 0,
+    steps = 1
+  )
+  predictions.extend(pred.argmax(axis=1))
+labels, predictions = np.asarray(labels), np.asarray(predictions)
+with open(METRICS, 'w') as f:
+  f.write(f'{tf.math.confusion_matrix(labels, predictions)}\n')
+  f.write(f'{classification_report(labels, predictions)}')
 
 # Values for the graphs
 print('Plotting graphs...')
@@ -132,6 +138,9 @@ plt.savefig(LOSS)
 w = model.get_weights()
 with open(WEIGHTS, 'wb') as f:
   pickle.dump(w, f)
+
+# Move layers.txt of the architecture to the model folder
+shutil.move(LAYERS, MODEL)
 
 # Archive the model and copy to drive
 print('Archiving the model folder and storing it in drive...')
