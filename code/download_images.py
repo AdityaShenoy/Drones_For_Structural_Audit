@@ -1,6 +1,12 @@
 import pyautogui as pag
 import time
+import os
+import shutil
 
+FOLDER = 'c:/users/admin/desktop/images'
+if os.path.exists(FOLDER):
+  shutil.rmtree(FOLDER)
+os.mkdir(FOLDER)
 time.sleep(1) # Time to switch to browser
 IMAGE_COORDS = 650, 700
 NEXT_COORDS = 1850, 850
@@ -12,7 +18,7 @@ for n in range(625):
     pass # Time to download image and windows file explorer prompt window to load
   pag.typewrite(f'{n}.jpg')
   pag.hotkey('ctrl', 'l')
-  pag.typewrite('c:/users/admin/desktop/images\n')
+  pag.typewrite(f'{FOLDER}\n')
   time.sleep(1) # Time to load the contents of the folder
   pag.hotkey('alt', 's')
   time.sleep(1) # Time to save the image
