@@ -97,17 +97,22 @@ with open(WEIGHTS, 'rb') as f:
 
 # Testing the sliding window mechanism on test video
 print('Testing the sliding window mechanism on test video...')
+time_per_frame = []
 cap = cv2.VideoCapture(INPUT_VIDEO)
 out = cv2.VideoWriter(OUTPUT_VIDEO, 0, FPS, VIDEO_DIM)
 while cap.isOpened():
   ret, frame = cap.read()
   if not ret:
     break
+  start = time.time()
   result = predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+  end = time.time()
+  time_per_frame.append(end-start)
   out.write(cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
 cap.release()
 out.release()
 cv2.destroyAllWindows()
+print(f'Average time per frame: {sum(time_per_frame)/len(time_per_frame)}s')
 
 # Archive and store output in drive
 print('Archiving output folder and storing it in drive...')
