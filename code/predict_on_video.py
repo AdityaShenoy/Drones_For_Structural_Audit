@@ -8,13 +8,14 @@ import pickle
 import cv2
 
 # Constants
+IS_LIVE = True
 IMG_SIZE = 256
 NUM_CHANNELS = 3
 COLOR_CODE = [Image.new('RGB', (IMG_SIZE, IMG_SIZE), x)
                 for x in [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]] #cdnp
 CLASSES = 'cdnp'
 FPS = 1
-VIDEO_DIM = (1280, 1024)
+VIDEO_DIM = (512, 512) if IS_LIVE else (1280, 1024)
 
 # File and folder paths
 DESKTOP = 'C:/Users/admin/Desktop/content'
@@ -41,6 +42,7 @@ print('Deleting old folders and making new empty folders...')
 for FOLDER in [MODEL, OUTPUT]:
   if os.path.exists(FOLDER):
     shutil.rmtree(FOLDER, onerror=lambda a,b,c:0)
+    time.sleep(1)
   os.mkdir(FOLDER)
 for src, inter, dst in [(DRIVE_MODEL_ZIP, MODEL_ZIP, MODEL)]:
   shutil.copy(src, CONTENT)
@@ -95,24 +97,33 @@ with open(WEIGHTS, 'rb') as f:
 #     result_img.save(f'{OUTPUT}/{file.name}')
 #     print(f'Processed {file_num} images...')
 
-# Testing the sliding window mechanism on test video
-print('Testing the sliding window mechanism on test video...')
-time_per_frame = []
-cap = cv2.VideoCapture(INPUT_VIDEO)
+# Testing the sliding window mechanism on video
+print(f'Testing the sliding window mechanism on {"live" if IS_LIVE else "test"} video...')
 out = cv2.VideoWriter(OUTPUT_VIDEO, 0, FPS, VIDEO_DIM)
+avg_time_per_frame, num_frames = None, 0
+cap = cv2.VideoCapture(0 if IS_LIVE else INPUT_VIDEO)
 while cap.isOpened():
+  start = time.time()
   ret, frame = cap.read()
   if not ret:
     break
-  start = time.time()
-  result = predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+  result = cv2.cvtColor(predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), cv2.COLOR_RGB2BGR)
+  if IS_LIVE:
+    cv2.imshow('frame', result)
+    if cv2.waitKey(1000 // 60) & 0xFF == ord('q'):
+      break
   end = time.time()
-  time_per_frame.append(end-start)
-  out.write(cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
+  out.write(result)
+  if avg_time_per_frame:
+    avg_time_per_frame = (avg_time_per_frame * num_frames + (end - start)) / \
+                          (num_frames + 1)
+    num_frames += 1
+  else:
+    avg_time_per_frame, frames = end-start, 1
+  print(f'{avg_time_per_frame} seconds')
 cap.release()
 out.release()
 cv2.destroyAllWindows()
-print(f'Average time per frame: {sum(time_per_frame)/len(time_per_frame)}s')
 
 # Archive and store output in drive
 print('Archiving output folder and storing it in drive...')
