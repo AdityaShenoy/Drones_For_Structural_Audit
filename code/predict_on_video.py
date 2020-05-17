@@ -8,7 +8,7 @@ import pickle
 import cv2
 
 # Constants
-IS_LIVE = True
+IS_LIVE = False
 IMG_SIZE = 256
 NUM_CHANNELS = 3
 COLOR_CODE = [Image.new('RGB', (IMG_SIZE, IMG_SIZE), x)
