@@ -14,7 +14,7 @@ start = time.time()
 # Constants
 IMG_SIZE = 256
 KERAS_DISTORTION_SCALE = 2
-TRAIN_SPLIT = 0.7
+TRAIN_SPLIT = 0.8
 CLASSES = 'cdnp'
 NUM_SAMPLES = 625
 NUM_CHANNELS = 3
