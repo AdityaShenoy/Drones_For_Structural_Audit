@@ -32,7 +32,6 @@ DATASET_ZIP = f'{DATASET}.zip'
 TRAIN = f'{DATASET}/train'
 VALIDATE = f'{DATASET}/validate'
 MODEL = f'{CONTENT}/model'
-LAYERS = f'{CONTENT}/layers.txt'
 WEIGHTS = f'{MODEL}/weights'
 METRICS = f'{MODEL}/metrics.txt'
 PLOTS = f'{MODEL}/plots'
@@ -58,8 +57,20 @@ os.unlink(DATASET_ZIP)
 
 # Initialize the ML model
 print('Building model...')
-with open(LAYERS) as f:
-  model = eval(f.read())
+model = tf.keras.models.Sequential([
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu',
+                         input_shape=(IMG_SIZE, IMG_SIZE, NUM_CHANNELS)),
+  tf.keras.layers.MaxPooling2D(2, 2),
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
+  tf.keras.layers.MaxPooling2D(2, 2),
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
+  tf.keras.layers.MaxPooling2D(2, 2),
+  tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
+  tf.keras.layers.MaxPooling2D(2, 2),
+  tf.keras.layers.Flatten(),
+  tf.keras.layers.Dense(32, activation='relu'),
+  tf.keras.layers.Dense(len(CLASSES), activation='softmax')
+])
 
 # Visualize the model
 tf.keras.utils.plot_model(model, to_file=ARCHITECTURE, show_shapes=True)
@@ -137,9 +148,6 @@ plt.savefig(LOSS)
 w = model.get_weights()
 with open(WEIGHTS, 'wb') as f:
   pickle.dump(w, f)
-
-# Move layers.txt of the architecture to the model folder
-shutil.move(LAYERS, MODEL)
 
 # Archive the model and copy to drive
 print('Archiving the model folder and storing it in drive...')
