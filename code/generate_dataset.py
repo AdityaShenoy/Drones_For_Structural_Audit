@@ -168,19 +168,22 @@ while not all(thread_finished.values()):
   print(msg)
   print(*thread_msg.items(), sep='\n')
   time.sleep(1)
-clear()
-print(msg)
 
 # Debugging
 for class_ in CLASSES:
+  msg += f"{class_} {len(os.listdir(f'{TRAIN}/{class_}'))}\n"
+  msg += f"{class_} {len(os.listdir(f'{VALIDATE}/{class_}'))}\n"
   print(class_, len(os.listdir(f'{TRAIN}/{class_}')))
   print(class_, len(os.listdir(f'{VALIDATE}/{class_}')))
 
 # Generate binary dataset
-NEGATIVE_CLASSES = len(CLASSES) - 1
+msg += 'Generating dataset for binary classification...\n'
+print('Generating dataset for binary classification...')
 train_distribution = [2667, 2667, 2666]
 validate_distribution = [334, 333, 333]
-for class_ in CLASSES:
+def bin_data(tid):
+  thread_msg[tid] = 'Thread started'
+  class_ = CLASSES[tid]
   os.mkdir(f'{TRAIN}/not_{class_}')
   os.mkdir(f'{VALIDATE}/not_{class_}')
   file_num = 0
@@ -199,6 +202,20 @@ for class_ in CLASSES:
       shutil.copy(src=f'{VALIDATE}/{neg_class}/{file}',
                   dst=f'{VALIDATE}/not_{class_}/{file_num:05}.jpg')
       file_num += 1
+  thread_msg[tid] = 'Thread completed'
+  thread_finished[tid] = True
+NUM_THREADS = 4
+thread_msg = {tid: 'Thread not started' for tid in range(NUM_THREADS)}
+thread_finished = {tid: False for tid in range(NUM_THREADS)}
+for tid in range(NUM_THREADS):
+  threading.Thread(target=bin_data, args=(tid,)).start()
+while not all(thread_finished.values()):
+  clear()
+  print(msg)
+  print(*thread_msg.items(), sep='\n')
+  time.sleep(1)
+clear()
+print(msg)
 
 # Debugging
 for class_ in CLASSES:
