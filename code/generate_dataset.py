@@ -184,15 +184,22 @@ validate_distribution = [334, 333, 333]
 def bin_data(tid):
   thread_msg[tid] = 'Thread started'
   class_ = CLASSES[tid]
-  os.mkdir(f'{TRAIN}/not_{class_}')
-  os.mkdir(f'{VALIDATE}/not_{class_}')
+  os.mkdir(f'{DATASET}/bin_{class_}')
+  os.mkdir(f'{DATASET}/bin_{class_}/train')
+  os.mkdir(f'{DATASET}/bin_{class_}/train/not_{class_}')
+  os.mkdir(f'{DATASET}/bin_{class_}/validate')
+  os.mkdir(f'{DATASET}/bin_{class_}/validate/not_{class_}')
+  shutil.copytree(src=f'{TRAIN}/{class_}',
+                  dst=f'{DATASET}/bin_{class_}/train')
+  shutil.copytree(src=f'{VALIDATE}/{class_}',
+                  dst=f'{DATASET}/bin_{class_}/validate')
   file_num = 0
   for i, neg_class in enumerate(CLASSES.replace(class_, '')): # dnp for c, cnp for d, and so on
     files = random.sample(os.listdir(f'{TRAIN}/{neg_class}'),
                           k=train_distribution[i])
     for file in files:
       shutil.copy(src=f'{TRAIN}/{neg_class}/{file}',
-                  dst=f'{TRAIN}/not_{class_}/{file_num:05}.jpg')
+                  dst=f'{DATASET}/bin_{class_}/train/not_{class_}/{file_num:05}.jpg')
       file_num += 1
   file_num = 0
   for i, neg_class in enumerate(CLASSES.replace(class_, '')): # dnp for c, cnp for d, and so on
@@ -200,7 +207,7 @@ def bin_data(tid):
                           k=validate_distribution[i])
     for file in files:
       shutil.copy(src=f'{VALIDATE}/{neg_class}/{file}',
-                  dst=f'{VALIDATE}/not_{class_}/{file_num:05}.jpg')
+                  dst=f'{DATASET}/bin_{class_}/validate/not_{class_}/{file_num:05}.jpg')
       file_num += 1
   thread_msg[tid] = 'Thread completed'
   thread_finished[tid] = True
@@ -219,7 +226,7 @@ print(msg)
 
 # Debugging
 for class_ in CLASSES:
-  print(f'not_{class_}', len(os.listdir(f'{TRAIN}/not_{class_}')))
+  print(f'not_{class_}', len(os.listdir(f'{DATASET}/not_{class_}')))
   print(f'not_{class_}', len(os.listdir(f'{VALIDATE}/not_{class_}')))
 
 # Archive the root and copy to drive

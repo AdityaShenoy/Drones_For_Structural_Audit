@@ -86,11 +86,14 @@ model.compile(
 # Set up the training, validating and testing dataset generator
 print('Setting up dataset generators...')
 train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = TRAIN)
+              .flow_from_directory(directory = TRAIN,
+                                   class_names = list(CLASSES))
 validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = VALIDATE)
+              .flow_from_directory(directory = VALIDATE,
+                                   class_names = list(CLASSES))
 test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = VALIDATE)
+              .flow_from_directory(directory = VALIDATE,
+                                   class_names = list(CLASSES))
 
 # Training the model
 print('Training the model...')
