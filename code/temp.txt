@@ -1,0 +1,30 @@
+done ... generalize proposed solution
+done ... shorten the flow of paper section
+done ... literature survey not finalized
+... plain wall instead of no defect
+... transfer learning model name
+... use 3 channel input image as the input image
+... use neurons instead of block diagram
+... should cnn come before transfer learning?
+... no consecutive diagrams
+... theory before and after figures
+... check arrow notations
+done ... cnn name
+... customized cnn model
+... pell to peel in figure 1 and 2
+... dotted line separation between input and model and output
+... figure 3 and 4 should have same format
+... output image
+... back and forward propagation visualization
+... show equations in the above visualization
+... result and analysis explanation
+... do not use colon if using new line
+... add total in table 1
+... numbering in pseudo code
+... 32k and 4k images in proposed solution
+... train test split in experimental analysis
+... experimental analysis explanation
+... per class plots
+... mention prec, recall, f1 score in abstract
+... prec, rec, f1 score explanation change
+... conclusion and future scope

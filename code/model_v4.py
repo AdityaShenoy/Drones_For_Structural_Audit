@@ -64,8 +64,8 @@ with open(LAYERS) as f:
 # Visualize the model
 tf.keras.utils.plot_model(model, to_file=ARCHITECTURE, show_shapes=True)
 
-# Complile the model
-print('Compiling the mdoel...')
+# Compile the model
+print('Compiling the model...')
 model.compile(
   loss = 'categorical_crossentropy',
   optimizer = tf.keras.optimizers.Adam(lr=0.001),

@@ -53,8 +53,8 @@ for FOLDER in [DATASET, RENAMED_FILTERED_SAMPLES, RAW, NO_DIST, TRAIN, VALIDATE]
       os.mkdir(f'{FOLDER}/{class_}')
 
 # Copy the zip file into colab and extract it
-print('Copying zip file from drive to colab file system...')
-msg += 'Copying zip file from drive to colab file system...\n'
+print('Copying and extracting zip file from drive to colab file system...')
+msg += 'Copying and extracting zip file from drive to colab file system...\n'
 shutil.copy(src=DRIVE_RENAMED_FILTERED_SAMPLES_ZIP, dst=DATASET)
 shutil.unpack_archive(filename=RENAMED_FILTERED_SAMPLES_ZIP,
                       extract_dir=RENAMED_FILTERED_SAMPLES, format='zip')
@@ -175,6 +175,35 @@ print(msg)
 for class_ in CLASSES:
   print(class_, len(os.listdir(f'{TRAIN}/{class_}')))
   print(class_, len(os.listdir(f'{VALIDATE}/{class_}')))
+
+# Generate binary dataset
+NEGATIVE_CLASSES = len(CLASSES) - 1
+train_distribution = [2667, 2667, 2666]
+validate_distribution = [334, 333, 333]
+for class_ in CLASSES:
+  os.mkdir(f'{TRAIN}/not_{class_}')
+  os.mkdir(f'{VALIDATE}/not_{class_}')
+  file_num = 0
+  for i, neg_class in enumerate(CLASSES.replace(class_, '')): # dnp for c, cnp for d, and so on
+    files = random.sample(os.listdir(f'{TRAIN}/{neg_class}'),
+                          k=train_distribution[i])
+    for file in files:
+      shutil.copy(src=f'{TRAIN}/{neg_class}/{file}',
+                  dst=f'{TRAIN}/not_{class_}/{file_num:05}.jpg')
+      file_num += 1
+  file_num = 0
+  for i, neg_class in enumerate(CLASSES.replace(class_, '')): # dnp for c, cnp for d, and so on
+    files = random.sample(os.listdir(f'{VALIDATE}/{neg_class}'),
+                          k=validate_distribution[i])
+    for file in files:
+      shutil.copy(src=f'{VALIDATE}/{neg_class}/{file}',
+                  dst=f'{VALIDATE}/not_{class_}/{file_num:05}.jpg')
+      file_num += 1
+
+# Debugging
+for class_ in CLASSES:
+  print(f'not_{class_}', len(os.listdir(f'{TRAIN}/not_{class_}')))
+  print(f'not_{class_}', len(os.listdir(f'{VALIDATE}/not_{class_}')))
 
 # Archive the root and copy to drive
 print('Archiving the root folder and storing it in drive...')
