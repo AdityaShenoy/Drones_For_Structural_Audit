@@ -86,14 +86,11 @@ model.compile(
 # Set up the training, validating and testing dataset generator
 print('Setting up dataset generators...')
 train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = TRAIN,
-                                   class_names = list(CLASSES))
+              .flow_from_directory(directory = TRAIN)
 validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = VALIDATE,
-                                   class_names = list(CLASSES))
+              .flow_from_directory(directory = VALIDATE)
 test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-              .flow_from_directory(directory = VALIDATE,
-                                   class_names = list(CLASSES))
+              .flow_from_directory(directory = VALIDATE)
 
 # Training the model
 print('Training the model...')
@@ -186,14 +183,14 @@ for class_ in CLASSES:
   # Set up the training, validating and testing dataset generator
   print('Setting up dataset generators...')
   train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-                .flow_from_directory(directory = TRAIN,
-                                     class_names=[class_, f'not_{class_}'])
+                .flow_from_directory(directory=f'{DATASET}/bin_{class_}/train',
+                                     class_mode='binary')
   validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-                .flow_from_directory(directory = VALIDATE,
-                                     class_names=[class_, f'not_{class_}'])
+                .flow_from_directory(directory=f'{DATASET}/bin_{class_}/validate',
+                                     class_mode='binary')
   test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-                .flow_from_directory(directory = VALIDATE,
-                                     class_names=[class_, f'not_{class_}'])
+                .flow_from_directory(directory=f'{DATASET}/bin_{class_}/validate',
+                                     class_mode='binary')
 
   # Training the model
   print('Training the model...')
