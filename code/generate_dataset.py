@@ -226,8 +226,10 @@ print(msg)
 
 # Debugging
 for class_ in CLASSES:
-  print(f'not_{class_}', len(os.listdir(f'{DATASET}/not_{class_}')))
-  print(f'not_{class_}', len(os.listdir(f'{VALIDATE}/not_{class_}')))
+  print(f'not_{class_}', len(os.listdir(f'{DATASET}/bin_{class_}/train/{class_}')))
+  print(f'not_{class_}', len(os.listdir(f'{DATASET}/bin_{class_}/train/not_{class_}')))
+  print(f'not_{class_}', len(os.listdir(f'{DATASET}/bin_{class_}/validate/{class_}')))
+  print(f'not_{class_}', len(os.listdir(f'{DATASET}/bin_{class_}/validate/not_{class_}')))
 
 # Archive the root and copy to drive
 print('Archiving the root folder and storing it in drive...')
