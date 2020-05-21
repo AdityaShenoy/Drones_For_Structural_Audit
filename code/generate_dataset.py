@@ -190,9 +190,9 @@ def bin_data(tid):
   os.mkdir(f'{DATASET}/bin_{class_}/validate')
   os.mkdir(f'{DATASET}/bin_{class_}/validate/not_{class_}')
   shutil.copytree(src=f'{TRAIN}/{class_}',
-                  dst=f'{DATASET}/bin_{class_}/train')
+                  dst=f'{DATASET}/bin_{class_}/train/{class_}')
   shutil.copytree(src=f'{VALIDATE}/{class_}',
-                  dst=f'{DATASET}/bin_{class_}/validate')
+                  dst=f'{DATASET}/bin_{class_}/validate/{class_}')
   file_num = 0
   for i, neg_class in enumerate(CLASSES.replace(class_, '')): # dnp for c, cnp for d, and so on
     files = random.sample(os.listdir(f'{TRAIN}/{neg_class}'),
@@ -201,6 +201,8 @@ def bin_data(tid):
       shutil.copy(src=f'{TRAIN}/{neg_class}/{file}',
                   dst=f'{DATASET}/bin_{class_}/train/not_{class_}/{file_num:05}.jpg')
       file_num += 1
+      thread_msg[tid] = f'Copied {file_num} training images'
+  thread_msg[tid] = 'Copying validating images'
   file_num = 0
   for i, neg_class in enumerate(CLASSES.replace(class_, '')): # dnp for c, cnp for d, and so on
     files = random.sample(os.listdir(f'{VALIDATE}/{neg_class}'),
@@ -209,6 +211,7 @@ def bin_data(tid):
       shutil.copy(src=f'{VALIDATE}/{neg_class}/{file}',
                   dst=f'{DATASET}/bin_{class_}/validate/not_{class_}/{file_num:05}.jpg')
       file_num += 1
+      thread_msg[tid] = f'Copied {file_num} validating images'
   thread_msg[tid] = 'Thread completed'
   thread_finished[tid] = True
 NUM_THREADS = 4
