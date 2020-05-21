@@ -50,7 +50,7 @@ for FOLDER in [DATASET, MODEL, PLOTS]:
   os.mkdir(FOLDER)
 
 # Copying the zip file from drive to colab file system
-print('Copying the zip file from drive to colab file system...')
+print('Copying and extracting the zip file from drive to colab file system...')
 shutil.copy(DRIVE_DATASET_ZIP, CONTENT)
 shutil.unpack_archive(DATASET_ZIP, DATASET)
 os.unlink(DATASET_ZIP)
