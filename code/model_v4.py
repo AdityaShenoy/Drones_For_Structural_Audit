@@ -136,7 +136,7 @@ plt.title('Accuracy vs Epochs')
 plt.legend()
 plt.savefig(ACCURACY)
 
-# Accuracy vs Epochs
+# Loss vs Epochs
 plt.figure()
 plt.plot(epochs, loss, 'r', label='Training Loss')
 plt.plot(epochs, val_loss, 'b', label='Validation Loss')
@@ -148,106 +148,6 @@ plt.savefig(LOSS)
 w = model.get_weights()
 with open(WEIGHTS, 'wb') as f:
   pickle.dump(w, f)
-
-# Build 4 binary classifiers
-for class_ in CLASSES:
-
-  # Initialize the ML model
-  model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu',
-                          input_shape=(IMG_SIZE, IMG_SIZE, NUM_CHANNELS)),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Conv2D(filters=16, kernel_size=(3,3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(32, activation='relu'),
-    tf.keras.layers.Dense(len(CLASSES), activation='sigmoid')
-  ])
-
-  # Visualize the model
-  tf.keras.utils.plot_model(model, to_file=f'{PLOTS}/bin_{class_}_model.jpg',
-                            show_shapes=True)
-
-  # Compile the model
-  print('Compiling the model...')
-  model.compile(
-    loss = 'binary_crossentropy',
-    optimizer = tf.keras.optimizers.Adam(lr=0.001),
-    metrics = ['accuracy']
-  )
-
-  # Set up the training, validating and testing dataset generator
-  print('Setting up dataset generators...')
-  train_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-                .flow_from_directory(directory=f'{DATASET}/bin_{class_}/train',
-                                     class_mode='binary')
-  validate_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-                .flow_from_directory(directory=f'{DATASET}/bin_{class_}/validate',
-                                     class_mode='binary')
-  test_gen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)\
-                .flow_from_directory(directory=f'{DATASET}/bin_{class_}/validate',
-                                     class_mode='binary')
-
-  # Training the model
-  print('Training the model...')
-  history = model.fit(
-    x = train_gen,
-    epochs = 15,
-    verbose = 1,
-    validation_data = validate_gen,
-    steps_per_epoch = TRAINING_SIZE // (2 * BATCH_SIZE),
-    validation_steps = VALIDATING_SIZE // (2 * BATCH_SIZE)
-  )
-
-  # Testing the model
-  print('Testing the model...')
-  labels, predictions = [], []
-  for i, (x, y) in enumerate(test_gen):
-    if i == VALIDATING_SIZE // (2 * BATCH_SIZE):
-      break
-    labels.extend(y.argmax(axis=1))
-    pred = model.predict(
-      x = x,
-      verbose = 0,
-      steps = 1
-    )
-    predictions.extend(pred.argmax(axis=1))
-  labels, predictions = np.asarray(labels), np.asarray(predictions)
-  with open(f'{MODEL}/bin_{class_}_metrics.txt', 'w') as f:
-    f.write(f'{tf.math.confusion_matrix(labels, predictions)}\n')
-    f.write(f'{classification_report(labels, predictions)}')
-
-  # Values for the graphs
-  print('Plotting graphs...')
-  acc = history.history['accuracy']
-  val_acc = history.history['val_accuracy']
-  loss = history.history['loss']
-  val_loss = history.history['val_loss']
-  epochs = range(len(acc))
-
-  # Accuracy vs Epochs
-  plt.plot(epochs, acc, 'r', label='Training Accuacy')
-  plt.plot(epochs, val_acc, 'b', label='Validation Accuacy')
-  plt.title('Accuracy vs Epochs')
-  plt.legend()
-  plt.savefig(f'{PLOTS}/bin_{class_}_accuracy_vs_epochs.jpg')
-
-  # Accuracy vs Epochs
-  plt.figure()
-  plt.plot(epochs, loss, 'r', label='Training Loss')
-  plt.plot(epochs, val_loss, 'b', label='Validation Loss')
-  plt.title('Loss vs Epochs')
-  plt.legend()
-  plt.savefig(f'{PLOTS}/bin_{class_}_loss_vs_epochs.jpg')
-
-  # Save model weights
-  w = model.get_weights()
-  with open(f'{MODEL}/bin_{class_}_weights', 'wb') as f:
-    pickle.dump(w, f)
 
 # Archive the model and copy to drive
 print('Archiving the model folder and storing it in drive...')
