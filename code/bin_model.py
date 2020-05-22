@@ -123,8 +123,6 @@ for class_ in CLASSES:
     if i == VALIDATING_SIZE // BATCH_SIZE:
       break
   labels, predictions = np.asarray(labels), np.asarray(predictions)
-  print(labels.shape)
-  print(predictions.shape)
   with open(METRICS.format(class_), 'w') as f:
     f.write(f'{tf.math.confusion_matrix(labels, predictions)}\n')
     f.write(f'{classification_report(labels, predictions)}')
